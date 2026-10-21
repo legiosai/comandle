@@ -10,6 +10,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"golang.org/x/term"
+
 	"github.com/legiosai/comandle/internal/game"
 )
 
@@ -34,9 +36,30 @@ type UI struct {
 	width int
 }
 
-// New returns a UI for stdout, deciding on color the usual way.
+// New returns a UI for stdout, deciding on color the usual way and wrapping
+// text to the terminal when it is narrower than the usual 72 columns.
 func New(w io.Writer) *UI {
-	return &UI{w: w, color: wantsColor(w), width: 72}
+	return &UI{w: w, color: wantsColor(w), width: widthFor(w)}
+}
+
+const (
+	maxWidth = 72
+	minWidth = 40
+)
+
+// widthFor is the text width for w: 72 columns, or less on a narrow terminal
+// (a phone, a split pane) so lines wrap between words instead of the terminal
+// cutting them. Two columns go to the left margin every line starts with.
+func widthFor(w io.Writer) int {
+	f, ok := w.(*os.File)
+	if !ok {
+		return maxWidth
+	}
+	cols, _, err := term.GetSize(int(f.Fd()))
+	if err != nil || cols <= 0 {
+		return maxWidth
+	}
+	return max(minWidth, min(maxWidth, cols-2))
 }
 
 func wantsColor(w io.Writer) bool {

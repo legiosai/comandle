@@ -1,0 +1,86 @@
+<!doctype html>
+<!--
+  The share image (web/img/og.png, 1200x630). The board is a made-up round
+  whose answer (tmux) is not in the calendar, so the image spoils no day.
+  Regenerate:
+    google-chrome --headless=new --hide-scrollbars --window-size=1200,630 \
+      --virtual-time-budget=2000 --screenshot=web/img/og.png scripts/og.html
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Martian Mono"; src: url("../web/fonts/martian-mono-latin.woff2") format("woff2"); font-weight: 100 800; }
+  @font-face { font-family: "Manrope"; src: url("../web/fonts/manrope-latin.woff2") format("woff2"); font-weight: 200 800; }
+  :root {
+    --bg: #1d1e26; --surface: #282a36; --edge: #353848; --fg: #f8f8f2; --soft: #c9cce0;
+    --comment: #6272a4; --comment-tx: #8a95c8; --absent: #474e6d; --ink: #1d1e26;
+    --green: #50fa7b; --yellow: #f1fa8c; --pink: #ff79c6; --purple: #bd93f9;
+    --mono: "Martian Mono", monospace; --sans: "Manrope", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: var(--bg); color: var(--fg); }
+  body {
+    font-family: var(--mono);
+    background:
+      radial-gradient(900px 500px at 88% 10%, rgba(189, 147, 249, .10), transparent 60%),
+      radial-gradient(700px 420px at 0% 100%, rgba(80, 250, 123, .07), transparent 60%),
+      var(--bg);
+    display: grid; grid-template-columns: 1fr 500px; gap: 24px;
+    padding: 64px 72px 56px;
+  }
+  .left { display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 22px; }
+  .brand img { width: 88px; height: 88px; }
+  .word { font-size: 64px; font-weight: 700; letter-spacing: -.02em; display: flex; align-items: center; }
+  .caret { display: inline-block; width: 30px; height: 58px; background: var(--green); margin-left: 8px; }
+  .tag { margin-top: 44px; font-family: var(--sans); font-weight: 700; font-size: 46px; line-height: 1.12; letter-spacing: -.01em; }
+  .tag .p { color: var(--pink); font-family: var(--mono); font-weight: 600; margin-right: 6px; }
+  .facts { margin-top: 26px; font-size: 22px; line-height: 1.7; color: var(--soft); }
+  .facts span { color: var(--comment); margin-right: 12px; }
+  .foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; font-size: 24px; white-space: nowrap; }
+  .url { color: var(--purple); font-weight: 600; }
+  .by { color: var(--comment-tx); font-size: 18px; }
+  .by b { color: var(--soft); font-weight: 600; }
+  .right { display: flex; flex-direction: row; align-items: flex-end; justify-content: flex-end; gap: 18px; padding-bottom: 6px; }
+  .say { font-size: 15px; color: var(--soft); white-space: pre; line-height: 1.28; }
+  .say b { color: var(--fg); font-weight: 600; }
+  .board { display: grid; grid-template-columns: repeat(4, 72px); gap: 9px; }
+  .t { width: 72px; height: 72px; border-radius: 9px; display: grid; place-items: center;
+       font-size: 32px; font-weight: 700; text-transform: lowercase;
+       box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .28); }
+  .g { background: var(--green); color: var(--ink); }
+  .y { background: var(--yellow); color: var(--ink); }
+  .a { background: var(--absent); color: var(--soft); }
+</style>
+</head>
+<body>
+  <section class="left">
+    <div class="brand">
+      <img src="../web/img/logo-96.png" alt="">
+      <div class="word">comandle<span class="caret"></span></div>
+    </div>
+    <p class="tag"><span class="p">$</span>adiviná el comando<br>del día en 6 intentos</p>
+    <p class="facts"><span>#</span>linux y seguridad<br><span>#</span>en la web o en la terminal<br><span>#</span>al final te lo explica</p>
+    <div class="foot"><span class="url">comandle.valentorassa.com</span><span class="by">hecho por <b>VT Security</b></span></div>
+  </section>
+  <section class="right">
+<pre class="say"> ________
+&lt; <b>exit 0</b> &gt;
+ --------
+    \    .--.
+     \  |^_^ |
+        |:_/ |
+       //   \ \
+      (|     | )
+     /'\_   _/`\
+     \___)=(___/</pre>
+    <div class="board">
+      <div class="t a">e</div><div class="t a">c</div><div class="t a">h</div><div class="t a">o</div>
+      <div class="t y">m</div><div class="t a">o</div><div class="t a">s</div><div class="t y">t</div>
+      <div class="t y">m</div><div class="t y">u</div><div class="t y">t</div><div class="t a">t</div>
+      <div class="t g">t</div><div class="t g">m</div><div class="t g">u</div><div class="t g">x</div>
+    </div>
+  </section>
+</body>
+</html>

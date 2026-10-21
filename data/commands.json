@@ -1229,5 +1229,815 @@
       }
     ],
     "security": "Antes de poner la política por defecto en DROP en un servidor remoto, agregá la regla que permite tu conexión y dejá programado un rollback, porque es muy fácil dejarte afuera."
+  },
+  {
+    "id": "whois",
+    "category": "redes",
+    "level": "básico",
+    "clues": [
+      "Te dice quién está detrás de un dominio o de un bloque de direcciones de internet.",
+      "Consulta bases de datos públicas de registradores y de registros regionales como LACNIC o RIPE; con -b te devuelve el contacto de abuso de una IP.",
+      "Habla el protocolo del mismo nombre, definido en el RFC 3912, y su nombre en inglés significa «quién es»."
+    ],
+    "summary": "Consulta quién registró un dominio o a quién pertenece una dirección de internet.",
+    "explanation": "whois le pregunta a los servidores de registro los datos públicos de un dominio o de un rango de IP: titular, fechas de alta y vencimiento, servidores de nombres y contactos. El cliente adivina a qué servidor preguntar según el objeto, y puede seguir las referencias del registro al registrador. Sirve para investigar un dominio sospechoso o para encontrar a quién reportar una IP que te está atacando.",
+    "examples": [
+      {
+        "cmd": "whois example.com",
+        "desc": "Muestra quién registró el dominio, cuándo vence y qué servidores de nombres usa."
+      },
+      {
+        "cmd": "whois -b 198.51.100.1",
+        "desc": "Devuelve el rango al que pertenece una IP y su contacto de abuso, útil para reportar un incidente."
+      },
+      {
+        "cmd": "whois -h whois.iana.org .ar",
+        "desc": "Le pregunta a la IANA qué registro maneja un dominio de nivel superior."
+      }
+    ],
+    "security": "Los datos de whois (correos, nombres y servidores) son materia prima para el reconocimiento y el phishing, así que activá la protección de privacidad en tus propios dominios y tratá lo que encontrás como información que el otro lado también puede ver."
+  },
+  {
+    "id": "chgrp",
+    "category": "permisos",
+    "level": "básico",
+    "clues": [
+      "Cambia una sola parte de la propiedad de un archivo, sin tocar al dueño.",
+      "Un usuario común puede usarlo sin sudo, pero solo hacia grupos de los que es miembro.",
+      "Su nombre viene de «change group»."
+    ],
+    "summary": "Cambia el grupo de archivos y directorios.",
+    "explanation": "chgrp cambia el grupo al que pertenece un archivo, que es el que usan los permisos del medio en ls -l. A diferencia de chown, un usuario común puede usarlo sin sudo sobre sus propios archivos, siempre que pertenezca al grupo de destino. Combinado con permisos de grupo y el bit setgid en un directorio compartido, deja trabajar a un equipo sin abrir los archivos a todos.",
+    "examples": [
+      {
+        "cmd": "chgrp devs informe.txt",
+        "desc": "Pasa el archivo al grupo devs; si es tuyo y estás en ese grupo, no hace falta sudo."
+      },
+      {
+        "cmd": "sudo chgrp -c -R devs /srv/proyecto",
+        "desc": "Cambia el grupo de todo el árbol del proyecto y muestra solo los archivos que cambiaron."
+      },
+      {
+        "cmd": "chgrp --reference=plantilla.txt informe.txt",
+        "desc": "Le pone al informe el mismo grupo que tiene la plantilla."
+      }
+    ],
+    "security": "Cambiar el grupo no cambia los permisos: si el archivo tiene escritura para el grupo, todos los miembros del nuevo grupo pueden modificarlo, así que revisá con ls -l qué habilita antes de pasarlo a un grupo con mucha gente."
+  },
+  {
+    "id": "nohup",
+    "category": "procesos",
+    "level": "básico",
+    "clues": [
+      "Lanza un comando para que siga vivo aunque cierres la terminal.",
+      "Lo desengancha de la señal que el sistema manda al cerrar la sesión, y si no redirigís la salida, la guarda en un archivo propio en el directorio actual.",
+      "Su nombre avisa que el proceso queda inmune al «hangup», es decir a la señal SIGHUP."
+    ],
+    "summary": "Ejecuta un comando ignorando la señal de cierre de la terminal.",
+    "explanation": "Cuando cerrás una terminal, el sistema manda SIGHUP a sus procesos y muchos terminan. nohup corre un comando ignorando esa señal, así sigue andando aunque te desconectes. Si la salida iba a la terminal, la redirige a nohup.out en el directorio actual, o a $HOME/nohup.out. Se suele combinar con & para mandarlo al fondo.",
+    "examples": [
+      {
+        "cmd": "nohup ./backup.sh &",
+        "desc": "Corre el script en segundo plano; sigue aunque cierres la sesión y la salida va a nohup.out."
+      },
+      {
+        "cmd": "nohup ./tarea-larga.sh > tarea.log 2>&1 &",
+        "desc": "Redirige salida y errores a un log propio en vez del archivo por defecto."
+      },
+      {
+        "cmd": "nohup rsync -a /datos/ /respaldo/ &",
+        "desc": "Deja una copia larga corriendo después de desconectarte por SSH."
+      }
+    ],
+    "security": "nohup deja un proceso huérfano y sin supervisión, y el nohup.out puede filtrar salida sensible al directorio actual; para un servicio de verdad conviene una unidad de systemd o una sesión de tmux, que lo reinician y lo registran."
+  },
+  {
+    "id": "flatpak",
+    "category": "paquetes",
+    "level": "básico",
+    "clues": [
+      "Instala aplicaciones de escritorio aisladas en un sandbox, que funcionan igual en casi cualquier distribución.",
+      "Su repositorio más conocido es Flathub, y cada app se identifica con un ID al revés, como org.gimp.GIMP.",
+      "Antes se llamaba xdg-app, y su nombre actual homenajea a los muebles de IKEA que vienen desarmados en una caja plana."
+    ],
+    "summary": "Instala y ejecuta aplicaciones de escritorio aisladas, independientes de la distribución.",
+    "explanation": "flatpak instala aplicaciones que traen sus propias bibliotecas sobre un runtime compartido, así que la misma app funciona en Debian, Fedora o Arch. Cada app corre en un sandbox armado con bubblewrap y solo ve los archivos, dispositivos y servicios que declara en sus permisos. Esos permisos se consultan con flatpak info y se pueden recortar con flatpak override, sin reinstalar nada.",
+    "examples": [
+      {
+        "cmd": "flatpak install flathub org.gimp.GIMP",
+        "desc": "Instala GIMP desde Flathub."
+      },
+      {
+        "cmd": "flatpak info --show-permissions org.gimp.GIMP",
+        "desc": "Muestra a qué archivos, dispositivos y servicios puede acceder la app."
+      },
+      {
+        "cmd": "flatpak override --user --nofilesystem=host org.gimp.GIMP",
+        "desc": "Le quita, solo para tu usuario, el acceso a todo el sistema de archivos que GIMP pide en su manifiesto."
+      }
+    ],
+    "security": "Muchas apps de Flathub piden acceso a todo tu home o a todo el disco, y con eso el sandbox protege poco: revisá sus permisos con flatpak info --show-permissions y recortalos con flatpak override."
+  },
+  {
+    "id": "lsblk",
+    "category": "sistema",
+    "level": "básico",
+    "clues": [
+      "Te muestra los discos y las particiones conectadas, dibujados como un árbol.",
+      "Con -f agrega el tipo de sistema de archivos, la etiqueta, el UUID y el punto de montaje de cada uno.",
+      "Lee todo de sysfs y de udev; su nombre abrevia «list block devices»."
+    ],
+    "summary": "Lista los dispositivos de bloque y cómo están particionados y montados.",
+    "explanation": "lsblk muestra en forma de árbol los dispositivos de bloque del sistema (discos, particiones, volúmenes LVM, RAID) con su tamaño, tipo y relación de dependencia. Con -f ves además el sistema de archivos, la etiqueta, el UUID y dónde está montado cada uno, y con -o elegís exactamente qué columnas mostrar. Toma los datos de sysfs y udev, así que no necesita privilegios.",
+    "examples": [
+      {
+        "cmd": "lsblk",
+        "desc": "Muestra el árbol de discos y particiones con sus tamaños."
+      },
+      {
+        "cmd": "lsblk -f",
+        "desc": "Agrega sistema de archivos, etiqueta, UUID y punto de montaje de cada partición."
+      },
+      {
+        "cmd": "lsblk -o NAME,SIZE,TYPE,MOUNTPOINTS,RO,RM",
+        "desc": "Elige columnas e incluye si el dispositivo es de solo lectura (RO) o removible (RM)."
+      }
+    ],
+    "security": "Un dispositivo removible que no esperabas (RM=1) o un punto de montaje raro pueden ser señal de que alguien conectó un medio para copiar datos; lsblk -f te confirma qué sistema de archivos trae y dónde está montado antes de tocarlo."
+  },
+  {
+    "id": "git-lfs",
+    "category": "git",
+    "level": "intermedio",
+    "clues": [
+      "Saca del historial los archivos pesados, como videos, diseños o modelos, y deja en su lugar un puntero de texto.",
+      "Con track le decís qué tipos de archivo manejar, y esa regla queda escrita en .gitattributes.",
+      "Es una extensión de git creada por GitHub; sus siglas vienen de «Large File Storage»."
+    ],
+    "summary": "Guarda los archivos grandes fuera del repositorio git y deja punteros en su lugar.",
+    "explanation": "git-lfs reemplaza los archivos grandes del repositorio por un puntero de texto chico y sube el contenido real a un almacenamiento aparte en el servidor. Lo usás cuando versionás binarios pesados, como imágenes, audio o datasets, que harían que cada clon descargue todas sus versiones. Se invoca como subcomando, git lfs, y funciona con filtros de git: en tu copia de trabajo los archivos se ven normales, pero en los commits solo queda el puntero.",
+    "examples": [
+      {
+        "cmd": "git lfs install",
+        "desc": "Configura los filtros de Git LFS para tu usuario; alcanza con hacerlo una vez por equipo."
+      },
+      {
+        "cmd": "git lfs track \"*.psd\"",
+        "desc": "Hace que los archivos .psd pasen por LFS; acordate de commitear el .gitattributes."
+      },
+      {
+        "cmd": "git lfs ls-files -s",
+        "desc": "Lista los archivos que maneja LFS en la rama actual, con su tamaño."
+      }
+    ],
+    "security": "Lo que subís por LFS vive aparte en el servidor y, en GitHub, ni borrarlo del repo ni reescribir la historia lo elimina: hay que borrar el repositorio entero o pedírselo a soporte, así que no subas por LFS dumps de bases ni archivos con datos sensibles."
+  },
+  {
+    "id": "file",
+    "category": "archivos",
+    "level": "básico",
+    "clues": [
+      "Te dice qué es realmente un archivo, sin hacerle caso a la extensión.",
+      "Lee los primeros bytes y los compara con una base de firmas conocidas, los «magic numbers».",
+      "Usa la biblioteca libmagic y, en inglés, su nombre es simplemente «archivo»."
+    ],
+    "summary": "Identifica el tipo de un archivo mirando su contenido.",
+    "explanation": "file examina el contenido de un archivo y te dice qué tiene: texto, un script, un ejecutable ELF, una imagen PNG o un comprimido. Para eso compara los primeros bytes con una base de firmas, los magic numbers, que mantiene la biblioteca libmagic. En Linux la extensión es solo parte del nombre, así que file es la forma rápida de saber con qué estás tratando antes de abrir o ejecutar algo.",
+    "examples": [
+      {
+        "cmd": "file foto.jpg",
+        "desc": "Te dice el tipo real del archivo, se llame como se llame."
+      },
+      {
+        "cmd": "file --mime-type -b subida.pdf",
+        "desc": "Devuelve solo el tipo MIME, como application/pdf, para usarlo en un script."
+      },
+      {
+        "cmd": "file /usr/bin/* | grep -i \"shell script\"",
+        "desc": "Encuentra cuáles de los programas de /usr/bin son en realidad scripts de shell."
+      }
+    ],
+    "security": "Para validar archivos subidos a un servidor no alcanza con la extensión ni con el tipo que manda el navegador: revisá el contenido como hace file, sabiendo que un archivo armado a propósito puede ser válido en dos formatos a la vez."
+  },
+  {
+    "id": "trivy",
+    "category": "seguridad",
+    "level": "intermedio",
+    "clues": [
+      "Escanea imágenes de contenedor y proyectos buscando vulnerabilidades conocidas.",
+      "Con --severity filtrás por gravedad, con --scanners sumás búsqueda de secretos y malas configuraciones, y con --exit-code cortás el pipeline si encuentra algo.",
+      "Lo desarrolla Aqua Security, está escrito en Go y es un clásico en los pipelines de integración continua."
+    ],
+    "summary": "Escanea imágenes, archivos y proyectos en busca de vulnerabilidades, secretos y malas configuraciones.",
+    "explanation": "trivy compara los paquetes de una imagen de contenedor, un sistema de archivos o un repositorio contra bases de datos de vulnerabilidades conocidas (CVE) y reporta cuáles tenés y en qué versión se arreglan. Además de vulnerabilidades, con --scanners busca secretos filtrados y malas configuraciones de infraestructura como código. Se corre a mano o en CI, donde con --exit-code frena un despliegue si aparecen problemas graves.",
+    "examples": [
+      {
+        "cmd": "trivy image python:3.4-alpine",
+        "desc": "Escanea una imagen de contenedor y lista sus vulnerabilidades conocidas."
+      },
+      {
+        "cmd": "trivy fs --scanners vuln,secret,misconfig /ruta/proyecto",
+        "desc": "Revisa un proyecto local buscando dependencias vulnerables, secretos y malas configuraciones."
+      },
+      {
+        "cmd": "trivy image --severity HIGH,CRITICAL --exit-code 1 miimagen:latest",
+        "desc": "En CI, devuelve error si la imagen tiene vulnerabilidades altas o críticas."
+      }
+    ],
+    "security": "trivy es tan bueno como su base de datos: actualizala antes de confiar en un escaneo, y recordá que --ignore-unfixed oculta las vulnerabilidades sin parche pero no las hace desaparecer; usalo con --exit-code en CI para bloquear imágenes vulnerables."
+  },
+  {
+    "id": "xargs",
+    "category": "texto",
+    "level": "intermedio",
+    "clues": [
+      "Toma lo que le llega por un pipe y lo convierte en argumentos de otro comando.",
+      "Con -0 lee entradas separadas por un byte nulo, la pareja ideal de find -print0 para nombres con espacios.",
+      "Con -P corre varios comandos en paralelo, y su nombre se suele leer como «extended arguments»."
+    ],
+    "summary": "Construye y ejecuta comandos con los argumentos que lee de la entrada estándar.",
+    "explanation": "Muchos comandos, como gzip, rm o ping, no leen nombres por la entrada estándar sino como argumentos; xargs hace de puente y los arma a partir de lo que le llega por un pipe. Por defecto mete todos los que entran en una sola ejecución y separa por espacios y saltos de línea: con -n limitás cuántos van por vez, con -I {} elegís dónde se insertan y con -P corrés varios procesos a la vez. Como un espacio en un nombre de archivo lo parte en dos, lo seguro es combinar find -print0 con xargs -0.",
+    "examples": [
+      {
+        "cmd": "find . -name \"*.log\" -print0 | xargs -0 gzip",
+        "desc": "Comprime todos los .log del directorio, aunque sus nombres tengan espacios."
+      },
+      {
+        "cmd": "printf '%s\\n' 192.0.2.10 192.0.2.11 | xargs -I {} ping -c 1 {}",
+        "desc": "Hace un ping a cada IP de la lista, reemplazando {} por una IP por vez."
+      },
+      {
+        "cmd": "xargs -a urls.txt -n 1 -P 4 curl -sSO",
+        "desc": "Descarga las URLs de un archivo, una por cada curl y hasta cuatro a la vez."
+      }
+    ],
+    "security": "Si metés {} dentro de un sh -c, un nombre de archivo armado a propósito, con un ; y otro comando adentro, se ejecuta como código: pasá los nombres como argumentos y combiná find -print0 con xargs -0."
+  },
+  {
+    "id": "kubectl",
+    "category": "contenedores",
+    "level": "intermedio",
+    "clues": [
+      "Es la línea de comandos para operar un clúster del orquestador de contenedores más usado.",
+      "Con get listás pods y servicios, con describe y logs investigás uno, y con auth can-i comprobás qué te permite hacer el control de acceso.",
+      "Maneja Kubernetes, al que se abrevia k8s, y se suele pronunciar «cube control»."
+    ],
+    "summary": "Administra recursos de un clúster de Kubernetes desde la terminal.",
+    "explanation": "kubectl es el cliente que habla con la API de un clúster de Kubernetes para crear, inspeccionar y modificar recursos como pods, servicios y despliegues. Con get listás lo que hay, con describe y logs investigás por qué algo falla, y con apply mandás la configuración declarada en un YAML. Lee a qué clúster conectarse y con qué credenciales del archivo kubeconfig, normalmente ~/.kube/config.",
+    "examples": [
+      {
+        "cmd": "kubectl get pods -A -o wide",
+        "desc": "Lista los pods de todos los namespaces con el nodo donde corre cada uno."
+      },
+      {
+        "cmd": "kubectl auth can-i create pods --all-namespaces",
+        "desc": "Comprueba si tu usuario tiene permiso para crear pods, según las reglas de RBAC."
+      },
+      {
+        "cmd": "kubectl describe pod web -n backend",
+        "desc": "Muestra el detalle y los eventos de un pod para entender por qué no arranca."
+      }
+    ],
+    "security": "El kubeconfig guarda credenciales y tokens del clúster: protegelo como una clave SSH y no lo subas a un repo; usá kubectl auth can-i para revisar los permisos y preferí cuentas de servicio con el mínimo privilegio antes que cluster-admin."
+  },
+  {
+    "id": "pgrep",
+    "category": "procesos",
+    "level": "intermedio",
+    "clues": [
+      "Encuentra procesos que están corriendo buscándolos por su nombre, en lugar de por su número.",
+      "Devuelve los PID que coinciden; con -a ves la línea de comandos completa, con -u filtrás por usuario y con -f buscás en todo el comando.",
+      "Aplica la lógica de búsqueda de grep a la tabla de procesos; de ahí la «p» de process al principio."
+    ],
+    "summary": "Busca procesos por nombre u otro criterio y devuelve sus PID.",
+    "explanation": "pgrep recorre los procesos activos y devuelve los PID de los que coinciden con un patrón, que por defecto es una expresión regular contra el nombre. Podés afinar por usuario con -u, por línea de comandos completa con -f o exigir coincidencia exacta con -x. Es el paso previo y seguro a pkill: primero mirás qué coincide y recién después mandás una señal.",
+    "examples": [
+      {
+        "cmd": "pgrep -a nginx",
+        "desc": "Lista los PID de los procesos de nginx junto con su línea de comandos completa."
+      },
+      {
+        "cmd": "pgrep -u www-data -l",
+        "desc": "Muestra los procesos del usuario www-data con su nombre."
+      },
+      {
+        "cmd": "pgrep -f \"python3 servidor.py\"",
+        "desc": "Busca el proceso cuya línea de comandos completa coincide con el patrón."
+      }
+    ],
+    "security": "El patrón es una coincidencia parcial, así que pgrep ssh también trae tu propio cliente; usá -x para el nombre exacto y -a para verificar antes de pasarle esos PID a kill o pkill y cortar un servicio que no era."
+  },
+  {
+    "id": "visudo",
+    "category": "permisos",
+    "level": "intermedio",
+    "clues": [
+      "Es la forma segura de editar el archivo que decide quién puede ejecutar comandos como root.",
+      "Bloquea el archivo mientras lo editás y no guarda cambios con errores de sintaxis; con -c solo revisa.",
+      "Su nombre junta un editor de texto clásico de Unix con el comando que ejecuta como superusuario."
+    ],
+    "summary": "Edita el archivo sudoers de forma segura, con bloqueo y chequeo de sintaxis.",
+    "explanation": "visudo abre /etc/sudoers en tu editor, pero trabaja sobre una copia: bloquea el archivo para que nadie más lo edite a la vez y solo instala los cambios si la sintaxis es correcta. Si encuentra un error te avisa y te deja corregirlo, en vez de guardar un sudoers roto que dejaría a todos sin sudo. Con -f editás archivos sueltos dentro de /etc/sudoers.d, la forma prolija de agregar reglas sin tocar el archivo principal.",
+    "examples": [
+      {
+        "cmd": "sudo visudo",
+        "desc": "Edita /etc/sudoers con bloqueo y chequeo de sintaxis antes de guardar."
+      },
+      {
+        "cmd": "sudo visudo -f /etc/sudoers.d/deploy",
+        "desc": "Crea o edita un archivo de reglas aparte, con el mismo chequeo."
+      },
+      {
+        "cmd": "sudo visudo -c",
+        "desc": "Revisa la sintaxis de sudoers y de todo lo que incluye, sin abrir el editor."
+      }
+    ],
+    "security": "visudo te salva de un error de sintaxis, no de una mala regla: un NOPASSWD: ALL o un comodín en los argumentos puede darle root completo a quien la tenga, así que dale a cada cuenta solo los comandos exactos que necesita y probala con sudo -l."
+  },
+  {
+    "id": "socat",
+    "category": "redes",
+    "level": "avanzado",
+    "clues": [
+      "Conecta dos flujos de datos cualesquiera y pasa los bytes de uno al otro.",
+      "Esos extremos pueden ser un puerto TCP, un socket de Unix, un archivo o un programa, y con fork y reuseaddr arma redirecciones de puertos y relays.",
+      "Es como un netcat con esteroides; su nombre junta «socket» con «cat», el gato que concatena flujos."
+    ],
+    "summary": "Conecta dos flujos de datos bidireccionales entre direcciones de cualquier tipo.",
+    "explanation": "socat abre dos direcciones (un puerto TCP, un socket de Unix, un archivo, un pseudo-terminal o un programa) y transfiere datos entre ellas en ambos sentidos. Con eso armás redirecciones de puertos, puentes entre un socket de Unix y un puerto TCP, o un cliente interactivo para depurar un servicio. La sintaxis de las direcciones es potente pero densa, por eso tiene fama de difícil.",
+    "examples": [
+      {
+        "cmd": "socat - TCP4:127.0.0.1:8080",
+        "desc": "Conecta tu terminal a un servicio local, como hace netcat, para probarlo a mano."
+      },
+      {
+        "cmd": "socat TCP4-LISTEN:8080,bind=127.0.0.1,reuseaddr,fork TCP4:127.0.0.1:3000",
+        "desc": "Redirige el puerto local 8080 al 3000, atendiendo cada conexión en un proceso hijo, solo en loopback."
+      },
+      {
+        "cmd": "socat UNIX-LISTEN:/tmp/demo.sock,fork TCP4:127.0.0.1:5432",
+        "desc": "Expone un servicio TCP local a través de un socket de Unix, por ejemplo para una herramienta que solo habla por socket."
+      }
+    ],
+    "security": "socat puede exponer a toda la red un servicio que era solo local o un socket privilegiado (como el de Docker) si lo ponés a escuchar en 0.0.0.0, y con EXEC puede entregar una shell remota: escuchá siempre en 127.0.0.1 y no reenvíes un socket sensible sin autenticación."
+  },
+  {
+    "id": "mktemp",
+    "category": "archivos",
+    "level": "intermedio",
+    "clues": [
+      "Crea un archivo o un directorio temporal con un nombre que nadie puede adivinar.",
+      "Imprime la ruta que creó, así que en un script se usa dentro de $( ) para guardarla en una variable.",
+      "Su nombre abrevia «make temporary» y reemplaza las X de una plantilla, como informe.XXXXXX, por caracteres al azar."
+    ],
+    "summary": "Crea archivos y directorios temporales con nombres impredecibles.",
+    "explanation": "mktemp crea un archivo, o un directorio con -d, en /tmp o en el directorio de $TMPDIR, con un nombre aleatorio, y te imprime la ruta. El archivo nace con permisos 600 y el directorio con 700, así que solo vos podés leerlos. Lo usás en scripts que necesitan guardar algo temporal sin pisar archivos de otros ni chocar con otra copia del mismo script corriendo a la vez.",
+    "examples": [
+      {
+        "cmd": "mktemp",
+        "desc": "Crea un archivo vacío como /tmp/tmp.dyCghUAYog y te muestra su ruta."
+      },
+      {
+        "cmd": "mktemp -d --tmpdir build.XXXXXX",
+        "desc": "Crea un directorio temporal con prefijo build. que solo vos podés abrir."
+      },
+      {
+        "cmd": "tmp=$(mktemp) && trap 'rm -f \"$tmp\"' EXIT",
+        "desc": "En un script, guarda la ruta en una variable y borra el archivo cuando el script termina."
+      }
+    ],
+    "security": "Un nombre fijo como /tmp/backup.tmp, o armado con el PID, deja que otro usuario cree antes un enlace simbólico con ese nombre, y si tu script corre como root termina escribiendo sobre el archivo que eligió el atacante: mktemp usa un nombre impredecible y nunca reutiliza uno que ya existe."
+  },
+  {
+    "id": "lazygit",
+    "category": "git",
+    "level": "básico",
+    "clues": [
+      "Te deja manejar un repositorio desde una interfaz de paneles en la terminal, con atajos de teclado.",
+      "Con la barra espaciadora pasás archivos a staging, y entrando en uno podés elegir líneas sueltas de un cambio.",
+      "Lo escribió Jesse Duffield en Go, y su nombre junta el sistema de control de versiones con «perezoso» en inglés."
+    ],
+    "summary": "Interfaz de terminal para usar git con paneles y atajos de teclado.",
+    "explanation": "lazygit muestra en paneles el estado del repositorio, las ramas, los commits y el stash, y te deja operar sobre ellos con una tecla: stagear, commitear, hacer un rebase interactivo o resolver conflictos. Lo usás cuando querés ver lo que estás haciendo en vez de encadenar comandos de git de memoria. Por debajo corre los mismos comandos de git que escribirías vos, así que el resultado en el repositorio es el mismo que si lo hicieras a mano.",
+    "examples": [
+      {
+        "cmd": "lazygit",
+        "desc": "Abre la interfaz sobre el repositorio del directorio actual."
+      },
+      {
+        "cmd": "lazygit -p ~/proyectos/web",
+        "desc": "Abre un repositorio que está en otra ruta."
+      },
+      {
+        "cmd": "lazygit -f src/config.go",
+        "desc": "Muestra solo los commits que tocaron ese archivo."
+      }
+    ],
+    "security": "Revisar el diff de cada archivo antes de stagearlo te ayuda a no commitear un .env o una clave por accidente, pero lazygit no busca secretos por vos: sumá un hook de pre-commit con gitleaks para eso."
+  },
+  {
+    "id": "dmesg",
+    "category": "sistema",
+    "level": "intermedio",
+    "clues": [
+      "Muestra los mensajes que el núcleo del sistema va dejando mientras funciona.",
+      "Ahí aparecen el hardware detectado al arrancar, los discos USB que conectás y las muertes por falta de memoria del OOM killer; con -l err,warn filtrás por severidad.",
+      "Lee el buffer circular del kernel; su nombre se suele leer como «diagnostic message»."
+    ],
+    "summary": "Muestra y controla los mensajes del núcleo del sistema.",
+    "explanation": "dmesg imprime el buffer circular del kernel: los mensajes que el núcleo emite sobre el hardware, los controladores, los sistemas de archivos y los errores. Con -H lo ves paginado y legible, con -T agrega marcas de tiempo humanas y con -w lo seguís en vivo. Es el primer lugar donde mirar cuando un disco falla, un dispositivo no arranca o un proceso muere sin explicación clara.",
+    "examples": [
+      {
+        "cmd": "sudo dmesg -H",
+        "desc": "Muestra el log del kernel paginado y con tiempos legibles."
+      },
+      {
+        "cmd": "sudo dmesg -l err,warn",
+        "desc": "Filtra solo los mensajes de error y advertencia."
+      },
+      {
+        "cmd": "sudo dmesg -T -w",
+        "desc": "Sigue los mensajes nuevos en vivo, con fecha y hora, por ejemplo al conectar un dispositivo."
+      }
+    ],
+    "security": "En sistemas endurecidos kernel.dmesg_restrict=1 oculta el buffer a los usuarios sin privilegios, porque puede filtrar punteros del kernel que ayudan a saltear ASLR; a la vez, revisar dmesg te muestra hardware inesperado o un OOM killer que delata un proceso descontrolado."
+  },
+  {
+    "id": "lynis",
+    "category": "seguridad",
+    "level": "intermedio",
+    "clues": [
+      "Audita un sistema tipo Unix y te sugiere cómo endurecer su configuración.",
+      "Recorre arranque, paquetes, SSH, permisos y logs, y al final te da un «hardening index»; con --pentest corre sin privilegios.",
+      "Es un script en shell mantenido por CISOfy, creado por Michael Boelen."
+    ],
+    "summary": "Audita la seguridad de un sistema y sugiere mejoras de endurecimiento.",
+    "explanation": "lynis recorre decenas de áreas del sistema (cargador de arranque, paquetes, servicios, SSH, permisos de archivos, logging y auditoría) y para cada una registra hallazgos y sugerencias. Al terminar muestra un índice de endurecimiento y guarda todo en un log y un archivo de reporte. No cambia nada por sí solo: es una herramienta de diagnóstico que te deja un plan de mejoras concretas.",
+    "examples": [
+      {
+        "cmd": "sudo lynis audit system",
+        "desc": "Hace una auditoría completa del sistema, con más detalle al correr como root."
+      },
+      {
+        "cmd": "lynis audit system --pentest",
+        "desc": "Corre sin privilegios, saltando los controles que requieren root."
+      },
+      {
+        "cmd": "sudo lynis audit system --tests-from-group ssh",
+        "desc": "Audita solo el grupo de controles de SSH, para enfocarte en su endurecimiento."
+      }
+    ],
+    "security": "lynis solo reporta, no corrige, así que un índice alto no es un certificado de seguridad: hay que aplicar las sugerencias y volver a auditar; además el reporte describe las debilidades del equipo, tratalo como información confidencial."
+  },
+  {
+    "id": "hexdump",
+    "category": "texto",
+    "level": "intermedio",
+    "clues": [
+      "Te muestra los bytes crudos de cualquier archivo, uno por uno, con su posición.",
+      "Con -C usa el formato canónico: posición, dieciséis bytes en hexadecimal y su texto a la derecha.",
+      "Su nombre junta la base 16 con «volcado» en inglés; xxd, que viene con vim, hace algo parecido."
+    ],
+    "summary": "Muestra el contenido de un archivo byte por byte, en hexadecimal y otros formatos.",
+    "explanation": "hexdump vuelca los bytes de un archivo tal cual están, sin interpretarlos, junto con su posición. Con -C usás el formato canónico: posición, dieciséis bytes en hexadecimal y su versión en texto, donde los no imprimibles aparecen como puntos. Sin opciones agrupa los bytes de a dos y en el orden de la CPU, que en x86 se ve invertido, por eso casi siempre se usa -C.",
+    "examples": [
+      {
+        "cmd": "echo 'hola' | hexdump -C",
+        "desc": "Muestra los bytes 68 6f 6c 61 de la palabra y un 0a final, que es el salto de línea."
+      },
+      {
+        "cmd": "hexdump -C -n 16 /bin/ls",
+        "desc": "Muestra los primeros 16 bytes del binario, que empiezan con 7f 45 4c 46, la firma de un ejecutable ELF."
+      },
+      {
+        "cmd": "hexdump -C -s 446 -n 64 disco.img",
+        "desc": "En una imagen de disco de práctica, salta hasta la tabla de particiones MBR y muestra sus 64 bytes."
+      }
+    ],
+    "security": "Mirar los primeros bytes te muestra el formato real aunque la extensión mienta, como un ejecutable ELF renombrado a .pdf, y revisar el final de una imagen puede destapar datos escondidos después de donde termina el formato."
+  },
+  {
+    "id": "pacman",
+    "category": "paquetes",
+    "level": "intermedio",
+    "clues": [
+      "Instala, actualiza y quita paquetes en una distribución de actualización continua.",
+      "Sus operaciones son letras mayúsculas: -S sincroniza con los repositorios, -Q consulta lo instalado y -R quita.",
+      "Es el gestor de paquetes de Arch Linux; su nombre abrevia «package manager» y coincide con un videojuego de 1980."
+    ],
+    "summary": "Gestor de paquetes de Arch Linux: instala, actualiza, quita y consulta paquetes.",
+    "explanation": "pacman descarga paquetes de los repositorios de Arch, resuelve dependencias y lleva la base de datos de lo instalado. Cada comando arranca con una operación en mayúscula, como -S, -Q o -R, seguida de modificadores en minúscula, como en -Syu, que refresca las bases y actualiza todo el sistema. Arch no soporta actualizaciones parciales: refrescar las bases e instalar un paquete sin actualizar el resto, como con -Sy paquete, puede dejar bibliotecas incompatibles.",
+    "examples": [
+      {
+        "cmd": "sudo pacman -Syu",
+        "desc": "Refresca las bases de los repositorios y actualiza todo el sistema."
+      },
+      {
+        "cmd": "pacman -Qo /usr/bin/ssh",
+        "desc": "Te dice qué paquete instalado trajo ese archivo."
+      },
+      {
+        "cmd": "pacman -Qkk openssh",
+        "desc": "Compara los archivos instalados del paquete con lo que registró al instalarlo: permisos, tamaño y fecha de modificación."
+      }
+    ],
+    "security": "Si una actualización falla por claves, actualizá el paquete archlinux-keyring en vez de poner SigLevel = Never en /etc/pacman.conf, porque así pacman aceptaría paquetes sin verificar su firma."
+  },
+  {
+    "id": "timeout",
+    "category": "procesos",
+    "level": "básico",
+    "clues": [
+      "Corre un comando pero lo corta si tarda más de lo que le permitís.",
+      "Le pasás una duración como 30s o 5m; con -s elegís qué señal mandar y con -k agregás un golpe de gracia si el proceso no muere.",
+      "Hace con cualquier comando lo que su nombre en inglés describe: le pone un límite de tiempo."
+    ],
+    "summary": "Ejecuta un comando y lo termina si sigue vivo después de una duración.",
+    "explanation": "timeout arranca un comando y, si todavía corre cuando pasa la duración indicada, le manda una señal para terminarlo (por defecto SIGTERM). La duración admite sufijos: s para segundos, m para minutos, h para horas. Con -k mandás además un SIGKILL un rato después, por si el proceso ignora la primera señal. Es ideal para que un script o una tarea de cron no se cuelgue para siempre.",
+    "examples": [
+      {
+        "cmd": "timeout 5 ping -c 100 192.0.2.10",
+        "desc": "Corta el ping a los 5 segundos aunque le hayas pedido 100 paquetes."
+      },
+      {
+        "cmd": "timeout 10s curl -s https://example.com",
+        "desc": "Le pone un techo de 10 segundos a una consulta que podría quedar colgada."
+      },
+      {
+        "cmd": "timeout -k 5 30 ./tarea.sh",
+        "desc": "Le da 30 segundos al script y, si no cerró en orden, lo mata 5 segundos después."
+      }
+    ],
+    "security": "Envolver comandos en timeout evita que un proceso colgado se acumule y agote memoria o conexiones, y acota la corrida de un comando que no controlás del todo; recordá que solo manda señales, así que para uno que ignora SIGTERM necesitás -k."
+  },
+  {
+    "id": "skopeo",
+    "category": "contenedores",
+    "level": "intermedio",
+    "clues": [
+      "Inspecciona y copia imágenes de contenedor hablando directo con los registros, sin daemon ni root.",
+      "Con inspect ves el manifiesto y las etiquetas de una imagen remota sin descargarla, y con copy la movés entre un registro, un directorio local o un layout OCI.",
+      "Es del proyecto containers de Red Hat, y su nombre viene del griego para «mirar» o «examinar»."
+    ],
+    "summary": "Inspecciona, copia y firma imágenes de contenedor sin necesitar un daemon.",
+    "explanation": "skopeo trabaja con imágenes de contenedor directamente contra los registros, sin un daemon corriendo ni privilegios de root. Con inspect leés el manifiesto, el digest y las etiquetas de una imagen remota sin descargarla entera, y con copy la movés entre un registro, un directorio local, un archivo o un layout OCI, convirtiéndola si hace falta. También sirve para firmar y verificar imágenes. Es muy usado en CI para revisar una imagen antes de desplegarla.",
+    "examples": [
+      {
+        "cmd": "skopeo inspect docker://docker.io/library/debian:trixie-slim",
+        "desc": "Muestra el manifiesto, el digest y las etiquetas de una imagen remota sin bajarla."
+      },
+      {
+        "cmd": "skopeo copy docker://quay.io/skopeo/stable:latest dir:/tmp/skopeo-img",
+        "desc": "Copia una imagen a un directorio local para inspeccionar sus capas."
+      },
+      {
+        "cmd": "skopeo list-tags docker://docker.io/library/debian",
+        "desc": "Lista las etiquetas disponibles de un repositorio en el registro."
+      }
+    ],
+    "security": "Como skopeo inspecciona sin bajar la imagen ni requerir root, es ideal en CI para verificar el digest y las etiquetas y fijar la imagen por digest antes de desplegar; lee las credenciales de auth.json o ~/.docker/config.json, así que cuidá esos archivos."
+  },
+  {
+    "id": "uptime",
+    "category": "sistema",
+    "level": "básico",
+    "clues": [
+      "Dice hace cuánto que el equipo está encendido sin reiniciarse.",
+      "En una línea te da la hora, cuántos usuarios hay conectados y la carga promedio del último minuto, de 5 y de 15; con -s mostrás la fecha exacta del último arranque.",
+      "Su nombre en inglés es, justamente, el «tiempo encendido» del sistema."
+    ],
+    "summary": "Muestra hace cuánto arrancó el sistema, los usuarios conectados y la carga promedio.",
+    "explanation": "uptime resume en una línea el estado general del equipo: la hora actual, cuánto tiempo lleva encendido, cuántos usuarios hay y la carga promedio del sistema en el último minuto, los últimos 5 y los últimos 15 minutos. La carga mide cuántos procesos esperan CPU o disco, así que compararla con la cantidad de núcleos te dice si el equipo está holgado o saturado. Con -p lo muestra en formato legible y con -s la fecha del último arranque.",
+    "examples": [
+      {
+        "cmd": "uptime",
+        "desc": "Muestra hora, tiempo encendido, usuarios y las tres cargas promedio."
+      },
+      {
+        "cmd": "uptime -p",
+        "desc": "Muestra solo el tiempo encendido en formato legible, como «up 4 days, 10 hours»."
+      },
+      {
+        "cmd": "uptime -s",
+        "desc": "Muestra la fecha y hora exactas del último arranque."
+      }
+    ],
+    "security": "Un tiempo encendido corto que no programaste puede delatar un reinicio inesperado (un crash, un parche aplicado o un ataque), y una carga alta sin causa visible puede ser un minero de criptomonedas escondido; cruzá el dato con last y dmesg."
+  },
+  {
+    "id": "ggshield",
+    "category": "git",
+    "level": "intermedio",
+    "clues": [
+      "Busca claves de API, tokens y contraseñas en tu código antes de que terminen en un repositorio.",
+      "Para analizar necesita una cuenta en un servicio externo: te autenticás con auth login y el contenido se revisa en su API.",
+      "Lo publica GitGuardian, y su nombre junta las iniciales de la empresa con «escudo» en inglés."
+    ],
+    "summary": "CLI de GitGuardian que detecta secretos en archivos, commits e imágenes de Docker.",
+    "explanation": "ggshield es la herramienta de línea de comandos de GitGuardian: le pasás una ruta, un repositorio o una imagen de Docker y te avisa si encuentra claves de API, tokens o contraseñas. A diferencia de gitleaks, la detección no corre en tu máquina sino en la API de GitGuardian, así que necesitás una cuenta y autenticarte con ggshield auth login o con la variable GITGUARDIAN_API_KEY. Lo más útil es instalarlo como hook de pre-commit, para frenar el secreto antes de que entre al historial.",
+    "examples": [
+      {
+        "cmd": "ggshield auth login",
+        "desc": "Te hace iniciar sesión en GitGuardian y guarda el token en tu configuración local."
+      },
+      {
+        "cmd": "ggshield secret scan repo .",
+        "desc": "Escanea los commits del repositorio actual, no solo los archivos de hoy."
+      },
+      {
+        "cmd": "ggshield install --mode local",
+        "desc": "Instala en el repositorio un hook de pre-commit que frena los commits con secretos."
+      }
+    ],
+    "security": "El contenido que escaneás viaja a los servidores de GitGuardian, que según su documentación no guardan archivos ni secretos, así que antes de usarlo con código de tu empresa o de un cliente confirmá que su política lo permita."
+  },
+  {
+    "id": "shred",
+    "category": "archivos",
+    "level": "intermedio",
+    "clues": [
+      "Pisa el contenido de un archivo varias veces para que no se pueda recuperar.",
+      "Por defecto hace tres pasadas con datos aleatorios y no borra el archivo salvo que le pases -u.",
+      "En inglés, su nombre es lo que hace una trituradora con el papel."
+    ],
+    "summary": "Sobrescribe el contenido de un archivo para dificultar su recuperación.",
+    "explanation": "shred pisa el contenido de un archivo con datos aleatorios, tres veces por defecto, para que no se pueda recuperar con herramientas forenses. No lo borra salvo que le pases -u, y con -z agrega una pasada final con ceros para disimular el borrado. Supone que el disco escribe encima de los mismos bloques, y también acepta dispositivos enteros como /dev/sdb, donde destruye todo: revisá dos veces la ruta antes de ejecutarlo.",
+    "examples": [
+      {
+        "cmd": "echo 'dato de prueba' > prueba.txt && shred -v prueba.txt",
+        "desc": "Crea un archivo descartable para practicar y lo pisa tres veces con datos aleatorios, mostrando cada pasada."
+      },
+      {
+        "cmd": "shred -n 1 -z prueba.txt",
+        "desc": "Hace una sola pasada aleatoria y una final con ceros, para que no se note que lo destruiste."
+      },
+      {
+        "cmd": "shred -u prueba.txt",
+        "desc": "Pisa el archivo de prueba y después lo borra; sin -u queda en su lugar."
+      }
+    ],
+    "security": "En SSD, en sistemas de archivos copy-on-write como btrfs o ZFS, en snapshots y en backups pueden quedar copias que shred no alcanza, así que para datos sensibles lo seguro es tener el disco cifrado desde el principio."
+  },
+  {
+    "id": "hashcat",
+    "category": "seguridad",
+    "level": "avanzado",
+    "clues": [
+      "Intenta recuperar contraseñas a partir de su huella criptográfica, probando candidatos a gran velocidad.",
+      "Con -m elegís el tipo de hash (0 es MD5), con -a 0 probás un diccionario y con -a 3 una máscara como ?u?l?l?l?d?d.",
+      "Aprovecha la GPU para probar millones de combinaciones por segundo; su nombre junta «hash» con el felino en inglés."
+    ],
+    "summary": "Recupera contraseñas a partir de su hash probando candidatos a gran velocidad.",
+    "explanation": "hashcat toma uno o varios hashes y prueba candidatos hasta encontrar el texto que los genera. Con -m indicás el algoritmo (0 para MD5, 1800 para sha512crypt, 3200 para bcrypt) y con -a el modo de ataque: diccionario (0), máscara o fuerza bruta (3) e híbridos. Las máscaras describen el formato de la contraseña con conjuntos como ?l (minúsculas), ?u (mayúsculas), ?d (dígitos) y ?s (símbolos). Se usa para auditar qué tan débiles son las contraseñas de tu propia organización.",
+    "examples": [
+      {
+        "cmd": "echo -n 'Verano2024' | md5sum | cut -d' ' -f1 > politica.hash",
+        "desc": "Genera el MD5 de una contraseña de prueba propia, para auditar tu política sin tocar datos reales."
+      },
+      {
+        "cmd": "hashcat -m 0 -a 0 politica.hash lista.txt",
+        "desc": "Ataca ese hash de prueba con un diccionario y muestra si la contraseña es adivinable."
+      },
+      {
+        "cmd": "hashcat -m 0 -a 3 politica.hash '?u?l?l?l?l?l?d?d?d?d'",
+        "desc": "Prueba por máscara el patrón «mayúscula, cinco minúsculas y cuatro dígitos», el típico de una política floja."
+      }
+    ],
+    "security": "Crackear hashes es solo para auditar tus propios sistemas o con autorización por escrito; que una contraseña débil caiga en segundos es justamente el argumento para guardarlas con algoritmos lentos y salados como bcrypt o Argon2, nunca con MD5."
+  },
+  {
+    "id": "setfacl",
+    "category": "permisos",
+    "level": "avanzado",
+    "clues": [
+      "Le da permisos sobre un archivo a un usuario o grupo puntual, sin cambiar el dueño ni el grupo.",
+      "Con -m agrega entradas como u:ana:r, y con -d define las que heredan los archivos nuevos de un directorio.",
+      "Modifica las listas de control de acceso; su hermano que solo las muestra empieza con «get»."
+    ],
+    "summary": "Agrega, cambia o quita entradas de las listas de control de acceso (ACL).",
+    "explanation": "setfacl le da permisos sobre un archivo a usuarios o grupos puntuales, además del dueño, el grupo y el resto. Lo usás cuando una persona más tiene que leer o escribir algo y no querés cambiarle el grupo ni abrirlo a todos. Los permisos de esas entradas quedan limitados por la máscara (mask), y en un directorio podés definir con -d ACL por defecto, que heredan los archivos nuevos.",
+    "examples": [
+      {
+        "cmd": "setfacl -m u:ana:r informe.txt",
+        "desc": "Le da a ana permiso de lectura sobre el archivo, sin tocar dueño ni grupo."
+      },
+      {
+        "cmd": "sudo setfacl -d -m g:devs:rwX /srv/compartido",
+        "desc": "Define una ACL por defecto: todo lo nuevo que se cree adentro le da lectura y escritura al grupo devs, y permiso de entrar a los subdirectorios."
+      },
+      {
+        "cmd": "setfacl -x u:ana informe.txt",
+        "desc": "Le quita a ana su entrada; con -b borrás todas las entradas extendidas de una vez."
+      }
+    ],
+    "security": "Sacarle permisos al grupo con chmod no borra las entradas de ACL, solo achica la máscara, y vuelven a valer en cuanto se abra de nuevo: para cortarle el acceso a alguien borrá su entrada con setfacl -x y revisá también las ACL por defecto del directorio."
+  },
+  {
+    "id": "debsums",
+    "category": "paquetes",
+    "level": "avanzado",
+    "clues": [
+      "Revisa si los archivos que instaló un paquete siguen siendo los mismos que trajo.",
+      "Compara cada archivo con las sumas MD5 que guarda dpkg en /var/lib/dpkg/info y marca cada uno como OK o FAILED.",
+      "Su nombre junta el formato de paquetes de Debian con «sumas» en inglés."
+    ],
+    "summary": "Verifica los archivos instalados de paquetes Debian contra sus sumas MD5.",
+    "explanation": "debsums recalcula el MD5 de cada archivo que instaló un paquete y lo compara con la lista que trajo el paquete, guardada en /var/lib/dpkg/info. Lo usás para encontrar binarios dañados, archivos que alguien editó a mano o configuración que cambiaste y ya no recordás. Por defecto saltea los archivos de configuración: con -e revisás solo esos y con -a todos. No viene instalado de fábrica; lo agregás con apt-get install debsums.",
+    "examples": [
+      {
+        "cmd": "sudo debsums -s",
+        "desc": "Revisa todos los paquetes y muestra solo los archivos con problemas."
+      },
+      {
+        "cmd": "debsums openssh-server",
+        "desc": "Lista cada archivo del paquete con su resultado, OK o FAILED."
+      },
+      {
+        "cmd": "sudo debsums -ce",
+        "desc": "Muestra solo los archivos de configuración que cambiaron desde que se instalaron."
+      }
+    ],
+    "security": "Las sumas están en el mismo equipo, así que alguien con root puede reescribirlas junto con el archivo, y el propio manual avisa que sirve poco como herramienta de seguridad: para detectar intrusiones usá un verificador como AIDE con su base guardada fuera del equipo."
+  },
+  {
+    "id": "tshark",
+    "category": "redes",
+    "level": "avanzado",
+    "clues": [
+      "Captura y analiza el tráfico de red, pero desde la terminal y sin interfaz gráfica.",
+      "Con -r abre un archivo .pcap, con -Y aplica un filtro de visualización y con -T fields -e extrae campos sueltos para un script.",
+      "Es el hermano de consola de Wireshark: comparte su motor de captura y sus filtros; su nombre une la inicial de «terminal» con «shark»."
+    ],
+    "summary": "Captura y diseca tráfico de red desde la línea de comandos, con el motor de Wireshark.",
+    "explanation": "tshark es la versión de terminal de Wireshark: captura paquetes de una interfaz o lee un archivo pcap y los muestra decodificados campo por campo. Sus filtros de visualización, con -Y, son mucho más expresivos que los de captura, y con -T fields podés sacar columnas concretas para procesarlas en un script. También calcula estadísticas con -z, como tablas de conversaciones. Capturar en vivo necesita privilegios, igual que tcpdump.",
+    "examples": [
+      {
+        "cmd": "sudo tshark -i lo -c 20 -f \"tcp port 8080\"",
+        "desc": "Captura 20 paquetes del puerto 8080 en la interfaz de loopback, con un filtro de captura."
+      },
+      {
+        "cmd": "tshark -r captura.pcap -Y \"http.request\" -T fields -e ip.src -e http.host",
+        "desc": "Lee un archivo y lista la IP de origen y el host de cada pedido HTTP."
+      },
+      {
+        "cmd": "tshark -r captura.pcap -q -z conv,ip",
+        "desc": "Muestra una tabla de conversaciones entre direcciones IP, con paquetes y bytes en cada sentido."
+      }
+    ],
+    "security": "Una captura puede contener cookies de sesión y credenciales en texto plano (tshark hasta tiene -z credentials para extraerlas de FTP, HTTP, IMAP, POP y SMTP), así que capturá solo en redes propias o con autorización y guardá los pcap como dato sensible."
+  },
+  {
+    "id": "snap",
+    "category": "paquetes",
+    "level": "básico",
+    "clues": [
+      "Instala aplicaciones empaquetadas con todas sus dependencias, que funcionan igual en muchas distribuciones.",
+      "Sus paquetes se actualizan solos en segundo plano y se publican en canales como stable, beta y edge.",
+      "Lo desarrolla Canonical, y en Ubuntu viene instalado de fábrica, con Firefox como uno de sus paquetes."
+    ],
+    "summary": "Instala y administra los paquetes de aplicaciones de Canonical desde su tienda.",
+    "explanation": "snap es el cliente de línea de comandos de snapd: instala aplicaciones desde la tienda de Canonical, las actualiza solas en segundo plano y guarda la revisión anterior para volver atrás. Por defecto cada paquete corre con confinamiento estricto, aislado con AppArmor y seccomp, y solo accede a lo que le habilitan sus interfaces, que se conectan y desconectan con snap connect y snap disconnect. Algunos paquetes, como editores de código o compiladores, usan confinamiento classic, que se instala con --classic y no tiene sandbox.",
+    "examples": [
+      {
+        "cmd": "sudo snap install vlc",
+        "desc": "Instala VLC desde la tienda, del canal stable y con confinamiento estricto."
+      },
+      {
+        "cmd": "snap connections vlc",
+        "desc": "Lista las interfaces del paquete, como red, audio o acceso a tu home, y cuáles están conectadas."
+      },
+      {
+        "cmd": "sudo snap revert vlc",
+        "desc": "Vuelve a la revisión anterior si la última actualización salió mal."
+      }
+    ],
+    "security": "Instalar con --classic le da al paquete el mismo acceso que tu usuario, sin sandbox, así que hacelo solo con publicadores que conocés y revisá con snap connections qué interfaces tiene conectadas cada app."
+  },
+  {
+    "id": "auditctl",
+    "category": "seguridad",
+    "level": "avanzado",
+    "clues": [
+      "Carga reglas para que el núcleo registre ciertos eventos de seguridad del sistema.",
+      "Con -w vigilás un archivo como /etc/shadow, con -a always,exit y -S execve registrás cada ejecución, y con -k les ponés una etiqueta para buscarlas después.",
+      "Es la herramienta de control del framework de auditoría de Linux, el mismo de auditd y ausearch."
+    ],
+    "summary": "Carga y controla las reglas del subsistema de auditoría del kernel.",
+    "explanation": "auditctl le dice al kernel qué eventos registrar a través del subsistema de auditoría de Linux. Podés vigilar accesos a un archivo con -w, o registrar llamadas al sistema concretas con reglas -a always,exit y -S, filtrando por usuario, arquitectura o resultado con -F. Cada evento queda etiquetado con una clave (-k) para buscarlo después con ausearch. Es la base para saber quién hizo qué en un sistema.",
+    "examples": [
+      {
+        "cmd": "sudo auditctl -w /etc/shadow -p wa -k cambios-shadow",
+        "desc": "Registra cualquier escritura o cambio de atributos sobre el archivo de contraseñas."
+      },
+      {
+        "cmd": "sudo auditctl -a always,exit -F arch=b64 -S execve -k ejecuciones",
+        "desc": "Anota cada programa que se ejecuta en el sistema de 64 bits."
+      },
+      {
+        "cmd": "sudo auditctl -l",
+        "desc": "Lista las reglas de auditoría activas en este momento."
+      }
+    ],
+    "security": "Las reglas se pierden al reiniciar salvo que las dejes en /etc/audit/rules.d/, y auditctl -e 2 bloquea la configuración hasta el próximo arranque para que ni siquiera un atacante con root pueda desactivar la auditoría en silencio."
   }
 ]

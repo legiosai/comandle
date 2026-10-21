@@ -196,6 +196,7 @@ getent
 getfacl
 getopt
 getpcaps
+ggshield
 ghidra
 git-lfs
 gitk

@@ -39,7 +39,7 @@ test("day number follows midnight in Argentina", () => {
 
 test("daily answers are the same as the Go engine", () => {
   // Printed from book.Daily(n) in Go with the same data/commands.json.
-  const fromGo = { 1: "grep", 2: "chmod", 45: "iptables", 46: "sudo", 47: "apt-get", 50: "passwd", 77: "uname", 100: "gitleaks", 365: "podman" };
+  const fromGo = { 1: "grep", 2: "chmod", 45: "iptables", 46: "whois", 47: "chgrp", 75: "auditctl", 76: "flatpak", 77: "uname", 100: "sysctl", 365: "podman" };
   for (const [n, id] of Object.entries(fromGo)) {
     assert.equal(daily(commands, Number(n)).id, id, `day ${n}`);
   }

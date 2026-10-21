@@ -70,8 +70,14 @@ así: `[x]` en su lugar, `(x)` en otra posición.
 
 ## Privacidad
 
-La versión de terminal no se conecta a internet y la web no usa cookies ni
-seguimiento. En la terminal, tus estadísticas quedan en un archivo que
+La versión de terminal no se conecta a internet. La web no usa cookies ni
+guarda nada que te identifique: cuando empezás o terminás una partida, o copiás
+el resultado, suma 1 a un contador del día. Así sabemos cuántas partidas hay, en
+cuántos intentos se resuelven, cuántos días seguidos se juega (en tramos) y de
+qué sitio llegan las visitas, sin IP ni identificador. Si tu navegador tiene
+activado Global Privacy Control, no manda nada.
+
+En la terminal, tus estadísticas quedan en un archivo que
 solo puede leer tu usuario: `$XDG_STATE_HOME/comandle/stats.json` si definiste
 esa variable, y si no `~/.config/comandle/` en Linux o
 `~/Library/Application Support/comandle/` en macOS. En la web quedan en el
@@ -87,8 +93,10 @@ una nota de seguridad. Los pasos están en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 comandle is a daily Wordle-like game for Linux and security commands, played in
 the terminal or the browser and written in Spanish. When a round ends it explains the command
-with examples and a security note. No network access, no telemetry; stats stay
-in a local file. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
+with examples and a security note. The terminal version has no network access
+and no telemetry; stats stay in a local file. The web adds 1 to anonymous daily
+counters (rounds, results, where visits come from), with no cookies or
+identifiers, and sends nothing when Global Privacy Control is on. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
 
 ## Licencia
 

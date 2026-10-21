@@ -16,6 +16,7 @@ import {
   score,
   shareText,
 } from "./logic.mjs";
+import { count, playedStreak, refFrom, referrerHost, streakBucket } from "./stats.mjs";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => {
@@ -962,6 +963,7 @@ function submit(len) {
   game.guesses.push(guess);
   game.current = "";
   comp = null;
+  if (!game.practice && game.guesses.length === 1) count("start", "-");
   if (!game.practice) store.set("comandle:today", { day: game.day, guesses: game.guesses });
   busy = true;
   sound.play("enter");
@@ -993,6 +995,8 @@ function finish() {
       history.push({ day: game.day, won: won(), tries: game.guesses.length });
       store.set("comandle:history", history.slice(-30));
     }
+    count("finish", won() ? String(game.guesses.length) : "x");
+    count("streak", streakBucket(playedStreak(store.get("comandle:history", []), game.day)));
   }
   say(endLine(), { extra: won() ? "" : `Era ${game.answer.id}.` });
   if (!won() || reduced()) return showEnd(true);
@@ -1180,6 +1184,7 @@ function copyShare(text, button, box) {
   writeClipboard(text).then(
     () => {
       sound.play("key");
+      count("share", "-");
       button.textContent = "copiado";
       setTimeout(() => (button.textContent = "copiar resultado"), 1800);
     },
@@ -1573,6 +1578,7 @@ async function main() {
   wire();
   showLine({ text: "cargando...", think: true });
   scheduleBlink();
+  arrived();
   try {
     await load();
   } catch {
@@ -1593,6 +1599,21 @@ async function main() {
     store.set("comandle:seen", true);
     openHelp();
   }
+}
+
+// Where this visit came from, counted once per tab. The ?ref= then leaves the
+// address bar, so a link copied from here does not carry it.
+function arrived() {
+  const search = location.search;
+  if (new URLSearchParams(search).has("ref")) window.history.replaceState(null, "", location.pathname + location.hash);
+  try {
+    if (sessionStorage.getItem("comandle:counted")) return;
+    sessionStorage.setItem("comandle:counted", "1");
+  } catch {
+    /* counted on every load, then */
+  }
+  count("ref", refFrom(search));
+  count("from", referrerHost(document.referrer));
 }
 
 main();

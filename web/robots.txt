@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://comandle.valentorassa.com/sitemap.xml

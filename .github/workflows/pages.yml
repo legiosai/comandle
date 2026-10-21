@@ -29,7 +29,7 @@ jobs:
       - name: Assemble the site
         run: |
           mkdir _site
-          cp web/index.html web/style.css web/app.mjs web/logic.mjs web/stats.mjs _site/
+          cp web/index.html web/style.css web/app.mjs web/logic.mjs web/stats.mjs web/robots.txt web/sitemap.xml _site/
           cp -R web/fonts web/img _site/
           cp data/commands.json data/allowed.txt _site/
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

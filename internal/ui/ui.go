@@ -160,7 +160,8 @@ func (u *UI) Letters(state map[rune]game.Mark) {
 
 // Clue shows a newly unlocked clue.
 func (u *UI) Clue(n int, text string) {
-	u.printf("  %s %s\n", u.bold(orange, fmt.Sprintf("pista %d:", n)), u.wrap(text, 4))
+	label := fmt.Sprintf("pista %d:", n)
+	u.printf("  %s %s\n", u.bold(orange, label), u.wrapAfter(text, 2+utf8.RuneCountInString(label)+1, 4))
 }
 
 // Words lists every valid command with the answer's length.
@@ -224,7 +225,7 @@ func (u *UI) Card(c *game.Command) {
 		u.printf("    %s %s\n", u.paint(green, "$"), u.paint(cyan, ex.Cmd))
 		u.printf("      %s\n", u.paint(comment, u.wrap(ex.Desc, 6)))
 	}
-	u.printf("\n  %s %s\n", u.bold(pink, "Seguridad:"), u.wrap(c.Security, 12))
+	u.printf("\n  %s %s\n", u.bold(pink, "Seguridad:"), u.wrapAfter(c.Security, 13, 12))
 	if c.Lab != "" {
 		u.printf("  %s %s\n", u.bold(purple, "Practicalo:"), u.paint(cyan, c.Lab))
 	}
@@ -266,15 +267,20 @@ func (u *UI) Muted(s string) { u.printf("  %s\n", u.paint(comment, s)) }
 
 // wrap breaks text to the UI width; indent is the column continuation
 // lines start at.
-func (u *UI) wrap(text string, indent int) string {
+func (u *UI) wrap(text string, indent int) string { return u.wrapAfter(text, indent, indent) }
+
+// wrapAfter is wrap for text printed after a label: the first line starts at
+// column first and the rest at column indent.
+func (u *UI) wrapAfter(text string, first, indent int) string {
 	words := strings.Fields(text)
 	var lines []string
 	cur := ""
-	limit := u.width - indent
+	limit := u.width - first
 	for _, w := range words {
 		if cur != "" && utf8.RuneCountInString(cur)+1+utf8.RuneCountInString(w) > limit {
 			lines = append(lines, cur)
 			cur = w
+			limit = u.width - indent
 			continue
 		}
 		if cur == "" {

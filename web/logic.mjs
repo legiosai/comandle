@@ -104,7 +104,7 @@ export function shareText(day, guesses, answerId, practice) {
       .map((m) => (m === CORRECT ? "🟩" : m === PRESENT ? "🟨" : "⬛"))
       .join(""),
   );
-  return [title, ...rows, "github.com/ValentinTorassa/comandle"].join("\n");
+  return [title, ...rows, "comandle.valentorassa.com"].join("\n");
 }
 
 /** Same bookkeeping as the terminal's stats.Record. */

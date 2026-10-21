@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ValentinTorassa/comandle/data"
-	"github.com/ValentinTorassa/comandle/internal/game"
+	"github.com/legiosai/comandle/data"
+	"github.com/legiosai/comandle/internal/game"
 )
 
 var launchDay = time.Date(2026, 10, 20, 15, 0, 0, 0, game.Argentina)

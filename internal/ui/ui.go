@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/ValentinTorassa/comandle/internal/game"
+	"github.com/legiosai/comandle/internal/game"
 )
 
 // Dracula palette.

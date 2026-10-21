@@ -4,7 +4,7 @@ Adiviná el comando del día en 6 intentos, desde la terminal o en el navegador.
 ronda, comandle te explica el comando: qué hace, tres ejemplos y qué tener en
 cuenta de seguridad.
 
-**Jugalo en el navegador: https://valentintorassa.github.io/comandle/** (mismo comando del día que la terminal).
+**Jugalo en el navegador: https://comandle.valentorassa.com** (mismo comando del día que la terminal).
 
 ![Una ronda de práctica: kill, ping y nmap, y la ficha que explica nmap](docs/demo.gif)
 
@@ -47,11 +47,11 @@ recuerda tu elección.
 Con Go 1.27 o superior:
 
 ```bash
-go install github.com/ValentinTorassa/comandle@latest
+go install github.com/legiosai/comandle@latest
 ```
 
 O bajá el binario para Linux, macOS o Windows desde
-[Releases](https://github.com/ValentinTorassa/comandle/releases) y verificá su
+[Releases](https://github.com/legiosai/comandle/releases) y verificá su
 SHA256 contra `SHA256SUMS`.
 
 ## Comandos
@@ -88,8 +88,9 @@ una nota de seguridad. Los pasos están en [CONTRIBUTING.md](CONTRIBUTING.md).
 comandle is a daily Wordle-like game for Linux and security commands, played in
 the terminal or the browser and written in Spanish. When a round ends it explains the command
 with examples and a security note. No network access, no telemetry; stats stay
-in a local file. Install with `go install github.com/ValentinTorassa/comandle@latest`.
+in a local file. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
 
 ## Licencia
 
-[Apache-2.0](LICENSE). Hecho por [VT Security](https://valentorassa.com).
+[Apache-2.0](LICENSE). Hecho por [VT Security](https://valentorassa.com), publicado por
+[Legios](https://github.com/legiosai).

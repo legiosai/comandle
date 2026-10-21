@@ -14,16 +14,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ValentinTorassa/comandle/data"
-	"github.com/ValentinTorassa/comandle/internal/game"
-	"github.com/ValentinTorassa/comandle/internal/stats"
-	"github.com/ValentinTorassa/comandle/internal/ui"
+	"github.com/legiosai/comandle/data"
+	"github.com/legiosai/comandle/internal/game"
+	"github.com/legiosai/comandle/internal/stats"
+	"github.com/legiosai/comandle/internal/ui"
 )
 
 // version is set at release time with -ldflags "-X main.version=...".
 var version = "dev"
 
-const contributing = "https://github.com/ValentinTorassa/comandle/blob/main/CONTRIBUTING.md"
+const contributing = "https://github.com/legiosai/comandle/blob/main/CONTRIBUTING.md"
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, time.Now()))

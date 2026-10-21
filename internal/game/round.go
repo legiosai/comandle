@@ -186,6 +186,6 @@ func (r *Round) Share(day int, practice bool) string {
 		}
 		sb.WriteString("\n")
 	}
-	sb.WriteString("github.com/ValentinTorassa/comandle")
+	sb.WriteString("comandle.valentorassa.com")
 	return sb.String()
 }

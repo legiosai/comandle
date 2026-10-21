@@ -1166,7 +1166,7 @@ function showEnd(animate) {
   buildResult(animate);
   const end = $("end");
   end.replaceChildren(buildMan(c));
-  const INSTALL = "go install github.com/ValentinTorassa/comandle@latest";
+  const INSTALL = "go install github.com/legiosai/comandle@latest";
   end.append(el("h3", "sec-h", "EN TU TERMINAL"), codeBlock(INSTALL, "comandle"));
   end.hidden = false;
   $("result").hidden = false;

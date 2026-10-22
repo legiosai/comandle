@@ -34,13 +34,13 @@ comandle #1 4/6
 
 ## En la web
 
-![La web: tablero, teclado y Tux citando a Ken Thompson](docs/web.png)
+![La web: tablero, teclado y vt, el pingüino, citando a Ken Thompson](docs/web.png)
 
 Un personaje ASCII comenta la ronda como lo haría `cowsay`: cambia los ojos
 cuando vas mal, festeja con `exit 0` y muere con un `segmentation fault`. Si lo
-tocás, corre `fortune`. Por defecto es Tux; desde el selector podés cambiarlo
-por la vaca, un conejo, un gato, un búho, un cangrejo o un fantasma, y la web
-recuerda tu elección.
+tocás, corre `fortune`. Por defecto es vt, el pingüino; desde el selector podés
+cambiarlo por la vaca, un conejo, un gato, un búho, un cangrejo o un fantasma, y
+la web recuerda tu elección.
 
 ## Instalación
 

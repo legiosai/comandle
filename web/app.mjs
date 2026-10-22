@@ -128,12 +128,12 @@ const EYE = { normal: "o", paranoid: "@", tired: "-", wired: "^", dead: "x", bli
 const ART_ROWS = 7; // the tallest buddy: every one gets the same footprint
 const MINI_ROWS = 3; // short screens: just the face
 const STACK_ROWS = ART_ROWS + 6; // stacked: art plus a bubble of up to 4 lines
-const DEFAULT_BUDDY = "tux";
+const DEFAULT_BUDDY = "vt";
 const BUDDIES = {
-  tux: {
-    name: "tux, el pingüino",
-    tag: "tux",
-    file: "tux",
+  vt: {
+    name: "vt, el pingüino",
+    tag: "vt",
+    file: "vt",
     indent: 9,
     eyes: (c) => `${c}_${c}`,
     art: ["    .--.", `   |${E} |`, "   |:_/ |", "  //   \\ \\", " (|     | )", "/'\\_   _/`\\", "\\___)=(___/"],
@@ -296,7 +296,7 @@ function buddyRows(m, { shown = Infinity, cols = COW_COLS, side = false, mini = 
     return [...blank, ...bub.rows, ...rows];
   }
   // the face sits 3 columns from the bubble; rows under the bubble may
-  // reach back below it (Tux's feet)
+  // reach back below it (the penguin's feet)
   const beside = art.slice(0, bub.rows.length).map((row) => row.findIndex((c) => c[0] !== " ")).filter((i) => i >= 0);
   const x = bub.width + 3 - Math.min(3, ...beside);
   const out = [];
@@ -486,7 +486,7 @@ function scheduleBlink() {
   );
 }
 
-// Switch buddy: same mood, the change shown as "buddy: tux", remembered.
+// Switch buddy: same mood, the change shown as "$ cowsay -f vt", remembered.
 function setBuddy(id, { greet = true } = {}) {
   id = validBuddy(id);
   const changed = id !== cow.id;

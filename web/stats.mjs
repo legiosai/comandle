@@ -1,6 +1,8 @@
 // Anonymous play counts for the web game. Each event adds 1 to a daily counter
-// in Pluma (vtsecurity.com.ar): how many rounds start and end, in how many
-// tries, how many days in a row people play, and where visits come from.
+// in Pluma (vtsecurity.com.ar), and to an hourly one by the time Pluma receives
+// it (Argentina time; the game sends nothing extra): how many rounds start and
+// end, in how many tries, how many days in a row people play, and where and
+// when visits come from.
 // Nothing identifies the player: no cookies, no ID, no IP kept. The terminal
 // version never connects to the network.
 

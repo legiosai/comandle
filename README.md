@@ -83,9 +83,11 @@ así: `[x]` en su lugar, `(x)` en otra posición.
 
 La versión de terminal no se conecta a internet. La web no usa cookies ni
 guarda nada que te identifique: cuando empezás o terminás una partida, o copiás
-el resultado, suma 1 a un contador del día. Así sabemos cuántas partidas hay, en
-cuántos intentos se resuelven, cuántos días seguidos se juega (en tramos) y de
-qué sitio llegan las visitas, sin IP ni identificador. Si tu navegador tiene
+el resultado, suma 1 a un contador del día y a otro de la hora en que llega
+(hora de Argentina; la anota el servidor, el juego no manda nada más). Así sabemos
+cuántas partidas hay, en cuántos intentos se resuelven, cuántos días seguidos se
+juega (en tramos) y de qué sitio y a qué hora llegan las visitas, sin IP ni
+identificador. Si tu navegador tiene
 activado Global Privacy Control, no manda eventos. Consultar el ranking solo lee
 los contadores públicos.
 

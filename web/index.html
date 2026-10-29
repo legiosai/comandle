@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://vtsecurity.com.ar; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
+  <meta name="comandle-stats-api" content="https://vtsecurity.com.ar/api/comandle">
   <title>comandle</title>
   <meta name="description" content="Adiviná el comando de Linux o seguridad del día en 6 intentos. Al final te lo explica, con ejemplos y una nota de seguridad.">
   <link rel="canonical" href="https://comandle.valentorassa.com/">
@@ -47,6 +48,16 @@
       </button>
     </nav>
   </header>
+
+  <div class="community-wrap">
+    <button class="community-strip" id="community-strip" type="button" aria-haspopup="dialog" aria-controls="community">
+      <span class="community-label"><i aria-hidden="true"></i>partidas</span>
+      <span>hoy <b id="community-today">—</b></span>
+      <span>ayer <b id="community-yesterday">—</b></span>
+      <span>históricas <b id="community-total">—</b></span>
+      <span class="community-link">ranking <span aria-hidden="true">↗</span></span>
+    </button>
+  </div>
 
   <main class="stage" id="game">
     <div class="aside">
@@ -149,6 +160,35 @@
     <div class="history" id="stats-history"></div>
     <h3><span aria-hidden="true"># </span>intentos por victoria</h3>
     <div class="dist" id="stats-dist"></div>
+    <button class="stats-community" id="stats-community" type="button">ver ranking de la comunidad <span aria-hidden="true">↗</span></button>
+  </dialog>
+
+  <dialog id="community" aria-labelledby="ranking-title">
+    <div class="dlg-head">
+      <h2 id="ranking-title">ranking</h2>
+      <form method="dialog"><button class="icon x" aria-label="Cerrar"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></button></form>
+    </div>
+    <p class="ranking-intro">Un comando. Todos jugando.</p>
+    <div class="community-numbers">
+      <div class="today"><b id="ranking-today">—</b><span>hoy</span></div>
+      <div><b id="ranking-yesterday">—</b><span>ayer</span></div>
+      <div><b id="ranking-total">—</b><span id="ranking-total-label">históricas</span></div>
+    </div>
+    <div class="ranking-switch" role="group" aria-label="Día del ranking">
+      <button id="ranking-today-tab" type="button" aria-pressed="true">hoy</button>
+      <button id="ranking-yesterday-tab" type="button" aria-pressed="false">ayer</button>
+    </div>
+    <p class="ranking-date" id="ranking-date"></p>
+    <div class="ranking-mine" id="ranking-mine" hidden></div>
+    <table class="ranking-table" id="ranking-table" hidden>
+      <caption class="sr-only">Resultados agrupados por intentos. Los empates comparten puesto.</caption>
+      <thead><tr><th scope="col">puesto</th><th scope="col">resultado</th><th scope="col">partidas</th></tr></thead>
+      <tbody id="ranking-rows"></tbody>
+    </table>
+    <p class="ranking-empty" id="ranking-empty" hidden></p>
+    <p class="ranking-note">Menos intentos, mejor puesto. Los empates comparten lugar.</p>
+    <p class="ranking-note">Partidas diarias terminadas en la web, desde el 28/10/2026. La práctica no suma.</p>
+    <div class="ranking-status-line"><span id="ranking-status" role="status"></span><button id="ranking-retry" type="button" hidden>reintentar</button></div>
   </dialog>
 
   <dialog id="archive" class="wide" aria-labelledby="archive-title">

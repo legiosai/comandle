@@ -17,6 +17,7 @@ import {
   shareText,
 } from "./logic.mjs";
 import { count, playedStreak, refFrom, referrerHost, streakBucket } from "./stats.mjs";
+import { initCommunity } from "./community.mjs";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => {
@@ -88,6 +89,7 @@ let comp = null; // tab completion in progress: { base, list, idx }
 let shownClues = 0;
 let countdownTimer = 0;
 let toastTimer = 0;
+let community = null;
 
 async function load() {
   const [cmds, list] = await Promise.all([
@@ -995,7 +997,9 @@ function finish() {
       history.push({ day: game.day, won: won(), tries: game.guesses.length });
       store.set("comandle:history", history.slice(-30));
     }
-    count("finish", won() ? String(game.guesses.length) : "x");
+    const recorded = count("finish", won() ? String(game.guesses.length) : "x");
+    community?.render();
+    Promise.resolve(recorded).then(() => community?.refresh(true));
     count("streak", streakBucket(playedStreak(store.get("comandle:history", []), game.day)));
   }
   say(endLine(), { extra: won() ? "" : `Era ${game.answer.id}.` });
@@ -1499,7 +1503,7 @@ function wire() {
   // typing (tab completes while the page has focus). Keyboard users still
   // reach every button with tab.
   document.addEventListener("mousedown", (e) => {
-    if (e.target instanceof Element && e.target.closest(".top button, .stage button, .sheet button, .foot button")) e.preventDefault();
+    if (e.target instanceof Element && e.target.closest(".top button, .community-strip, .stage button, .sheet button, .foot button")) e.preventDefault();
   });
   $("keyboard").addEventListener("click", (e) => {
     const key = e.target.closest("button")?.dataset.key;
@@ -1514,7 +1518,10 @@ function wire() {
       return openHelp();
     }
     if (!game) return;
-    const onControl = e.target instanceof Element && e.target.closest("button, a") && !e.target.closest("#keyboard");
+    // Some browsers leave focus on the close button for a moment after a
+    // dialog closes. That hidden control must not swallow the next Enter.
+    const onControl = e.target instanceof Element && e.target.closest("button, a") &&
+      !e.target.closest("#keyboard, dialog:not([open])");
     const step =
       e.key === "Tab" ? (e.shiftKey ? -1 : 1) : e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0;
     if (step) {
@@ -1576,6 +1583,7 @@ async function main() {
   buildTutorial();
   paintSound();
   wire();
+  community = initCommunity({ getHistory: () => store.get("comandle:history", []), beforeOpen: closeDrawer });
   showLine({ text: "cargando...", think: true });
   scheduleBlink();
   arrived();

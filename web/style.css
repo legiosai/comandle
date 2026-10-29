@@ -125,6 +125,26 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
 
 /* ------------------------------------------------------------- stage */
 
+.community-wrap { width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+.community-strip {
+  width: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px;
+  padding: 9px 0; border: 0; background: none; text-align: left; cursor: pointer;
+  font: 450 10px/1.6 var(--mono); color: var(--comment-tx);
+}
+.community-strip > span { white-space: nowrap; }
+.community-strip b { color: var(--soft); font-weight: 550; margin-left: 3px; font-variant-numeric: tabular-nums; }
+.community-label { display: inline-flex; align-items: center; gap: 7px; }
+.community-label i { width: 5px; height: 5px; border-radius: 50%; background: var(--green); opacity: .75; }
+.community-strip.unavailable .community-label i { background: var(--muted); }
+.community-link { margin-left: auto; color: var(--purple); }
+.community-strip:hover .community-link { color: var(--pink); }
+@media (min-width: 960px) { .community-wrap { padding: 0 32px; } }
+@media (max-width: 599px) {
+  .community-wrap { padding: 0 16px; }
+  .community-strip { gap: 4px 12px; font-size: 9px; padding: 5px 0; }
+  .community-label { display: none; }
+}
+
 .stage {
   --t: 56px;
   --g: calc(var(--t) * .12);
@@ -768,6 +788,45 @@ kbd {
   transition: width .6s var(--ease);
 }
 .bar i.lit { background: var(--purple); color: var(--ink); }
+
+/* The community ranking uses the same quiet terminal as personal stats. */
+#community { width: min(460px, calc(100vw - 24px)); }
+.ranking-intro { margin: -2px 0 22px; font: 450 13px/1.5 var(--sans); color: var(--soft); }
+.community-numbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding-bottom: 22px; border-bottom: 1px solid var(--edge-2); }
+.community-numbers > div { display: grid; gap: 8px; }
+.community-numbers b { font: 600 clamp(22px, 6vw, 30px)/1 var(--mono); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.community-numbers span { font: 450 11px/1.2 var(--mono); color: var(--comment-tx); }
+.community-numbers .today b { color: var(--green); }
+.ranking-switch { display: flex; gap: 5px; margin: 20px 0 10px; padding: 4px; border-radius: 9px; background: var(--bg); }
+.ranking-switch button { flex: 1; padding: 8px 12px; border: 0; border-radius: 6px; background: none; color: var(--muted); font: 500 12px/1.3 var(--mono); cursor: pointer; }
+.ranking-switch button[aria-pressed="true"] { background: var(--edge); color: var(--fg); }
+.ranking-date { margin: 12px 0; color: var(--comment-tx); font: 450 10px/1.5 var(--mono); }
+.ranking-mine { display: grid; gap: 5px; padding: 12px; margin: 0 0 14px; border: 1px solid var(--edge-2); border-radius: 8px; color: var(--muted); font: 450 12px/1.6 var(--sans); }
+.ranking-mine.has-result { border-color: var(--purple); background: rgba(189, 147, 249, .05); }
+.ranking-mine b { font: 550 12px/1.5 var(--mono); color: var(--purple); }
+.ranking-table { width: 100%; border-collapse: collapse; font: 450 12px/1.5 var(--mono); }
+.ranking-table thead th { padding: 0 10px 8px; text-align: left; font-size: 10px; font-weight: 450; color: var(--comment-tx); }
+.ranking-table th:last-child { text-align: right; }
+.ranking-table td, .ranking-table tbody th { padding: 10px; border-top: 1px solid var(--edge); font-weight: 450; text-align: left; }
+.ranking-place { width: 24%; color: var(--comment-tx); font-variant-numeric: tabular-nums; }
+.ranking-table td.ranking-count { text-align: right; color: var(--soft); font-variant-numeric: tabular-nums; }
+.ranking-table .is-you { background: rgba(189, 147, 249, .1); }
+.ranking-table .is-you .ranking-score, .ranking-table .is-you .ranking-place { color: var(--purple); }
+.ranking-table .is-loss { color: var(--muted); }
+.ranking-table .is-loss .ranking-score { font-size: 10px; }
+.you-tag { display: inline-block; margin-left: 9px; padding: 2px 5px; border-radius: 4px; background: var(--purple); color: var(--ink); font-size: 9px; }
+.ranking-note { margin: 12px 0 0; color: var(--comment-tx); font: 450 11px/1.6 var(--sans); }
+.ranking-note + .ranking-note { margin-top: 4px; }
+.ranking-empty { font: 450 12px/1.6 var(--sans); color: var(--muted); }
+.ranking-status-line { margin-top: 16px; display: flex; gap: 8px; align-items: baseline; font: 450 9px/1.6 var(--mono); color: var(--comment-tx); }
+.ranking-status-line button, .stats-community { border: 0; padding: 0; background: none; color: var(--purple); font: inherit; cursor: pointer; }
+.stats-community { margin-top: 20px; font: 450 11px/1.6 var(--mono); }
+.stats-community:hover, .ranking-status-line button:hover { color: var(--pink); }
+@media (max-width: 359px) {
+  .community-strip { column-gap: 8px; font-size: 8px; }
+  .ranking-table td, .ranking-table tbody th, .ranking-table thead th { padding-left: 6px; padding-right: 6px; }
+  .you-tag { margin-left: 5px; }
+}
 
 .arch-note { margin: 4px 0; font: 450 13px/1.5 var(--mono); color: var(--comment-tx); }
 .arch-list { list-style: none; margin: 0; padding: 0; display: grid; }

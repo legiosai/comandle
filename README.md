@@ -42,6 +42,17 @@ tocás, corre `fortune`. Por defecto es vt, el pingüino; desde el selector pod�
 cambiarlo por la vaca, un conejo, un gato, un búho, un cangrejo o un fantasma, y
 la web recuerda tu elección.
 
+Debajo del título se ven las partidas terminadas hoy, ayer y desde el lanzamiento
+público (28/10/2026). Tocá ese contador para abrir el ranking: agrupa los resultados
+por intentos, comparte puesto entre empates y resalta tu resultado guardado en
+este navegador. Podés alternar hoy y ayer. Solo suma partidas diarias de la web;
+la práctica y la terminal no participan. No hace falta elegir nombre ni crear cuenta.
+
+Para previsualizar la web localmente: `node scripts/preview.mjs` y abrí
+`http://127.0.0.1:4173`. El contador necesita el endpoint público de Pluma;
+para probar un cambio del backend, definí `COMANDLE_API_URL` con la URL local de
+`/api/comandle`. Jugar en localhost no manda eventos al contador de producción.
+
 ## Instalación
 
 Con Go 1.27 o superior:
@@ -75,7 +86,8 @@ guarda nada que te identifique: cuando empezás o terminás una partida, o copi�
 el resultado, suma 1 a un contador del día. Así sabemos cuántas partidas hay, en
 cuántos intentos se resuelven, cuántos días seguidos se juega (en tramos) y de
 qué sitio llegan las visitas, sin IP ni identificador. Si tu navegador tiene
-activado Global Privacy Control, no manda nada.
+activado Global Privacy Control, no manda eventos. Consultar el ranking solo lee
+los contadores públicos.
 
 En la terminal, tus estadísticas quedan en un archivo que
 solo puede leer tu usuario: `$XDG_STATE_HOME/comandle/stats.json` si definiste
@@ -96,7 +108,8 @@ the terminal or the browser and written in Spanish. When a round ends it explain
 with examples and a security note. The terminal version has no network access
 and no telemetry; stats stay in a local file. The web adds 1 to anonymous daily
 counters (rounds, results, where visits come from), with no cookies or
-identifiers, and sends nothing when Global Privacy Control is on. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
+identifiers, and sends no play events when Global Privacy Control is on. Public
+daily counts and an anonymous ranking are available in the browser. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
 
 ## Licencia
 

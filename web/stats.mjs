@@ -61,7 +61,7 @@ export function count(event, key) {
   try {
     // A text/plain POST is a simple request: no preflight. "cors" mode, because
     // with this page's no-referrer policy a no-cors POST would say Origin: null.
-    fetch(ENDPOINT, {
+    return fetch(ENDPOINT, {
       method: "POST",
       body: JSON.stringify({ event, key }),
       mode: "cors",

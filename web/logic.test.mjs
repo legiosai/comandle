@@ -59,6 +59,19 @@ test("share text has no spoilers", () => {
   assert.ok(!text.includes("chmod"));
 });
 
+test("share text is byte-for-byte the terminal's for the daily and practice", () => {
+  // Same strings as Round.Share in internal/game (title, rows, site).
+  assert.equal(shareText(7, ["chown", "mount", "chmod"], "chmod", false), "comandle #7 3/6\n🟩🟩🟨⬛⬛\n🟨🟨⬛⬛⬛\n🟩🟩🟩🟩🟩\ncomandle.valentorassa.com");
+  assert.equal(shareText(0, ["kill", "ping"], "nmap", true), "comandle (práctica) X/6\n⬛⬛⬛⬛\n🟨⬛🟨⬛\ncomandle.valentorassa.com");
+  assert.equal(shareText(7, ["chmod"], "chmod", false, undefined), shareText(7, ["chmod"], "chmod", false));
+  assert.equal(shareText(0, ["chmod"], "chmod", true, ""), shareText(0, ["chmod"], "chmod", true));
+});
+
+test("share text in a room (web only) names the room instead of the day", () => {
+  assert.equal(shareText(12, ["chown", "mount", "chmod"], "chmod", false, "K7QZ"), "comandle (sala K7QZ) 3/6\n🟩🟩🟨⬛⬛\n🟨🟨⬛⬛⬛\n🟩🟩🟩🟩🟩\ncomandle.valentorassa.com");
+  assert.ok(shareText(12, ["kill"], "nmap", false, "K7QZ").startsWith("comandle (sala K7QZ) "));
+});
+
 test("stats bookkeeping matches the terminal", () => {
   let s = recordStats({}, 1, true, 3);
   s = recordStats(s, 2, true, 1);

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://vtsecurity.com.ar; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="comandle-stats-api" content="https://vtsecurity.com.ar/api/comandle">
+  <title>comandle · modo clase</title>
+  <meta name="description" content="Abrí una sala de comandle en el proyector: el público juega el mismo comando desde el celular y ves los resultados en vivo, sin nombres.">
+  <link rel="canonical" href="https://comandle.valentorassa.com/sala.html">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://comandle.valentorassa.com/sala.html">
+  <meta property="og:site_name" content="comandle · VT Security">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:title" content="comandle · modo clase">
+  <meta property="og:description" content="Abrí una sala en el proyector y que todos jueguen el mismo comando desde el celular.">
+  <meta property="og:image" content="https://comandle.valentorassa.com/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="comandle: adiviná el comando del día en 6 intentos. Un tablero con cuatro intentos y el pingüino vt en ASCII.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#1d1e26">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="preload" href="fonts/martian-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="presentador.mjs"></script>
+</head>
+<body class="presenter">
+  <header class="top">
+    <div class="brand">
+      <a class="brand-home" href="./" title="Ir al juego">
+        <img class="logo" src="img/logo-96.png" width="32" height="32" alt="" aria-hidden="true">
+        <span class="word">comandle<span class="caret" aria-hidden="true"></span></span>
+      </a>
+      <span class="day room">modo clase</span>
+    </div>
+  </header>
+
+  <main class="sala-stage">
+    <p class="sala-loading" id="loading" role="status">cargando comandos…</p>
+
+    <section class="sala-setup" id="setup" aria-labelledby="setup-title" hidden>
+      <h1 class="sala-title" id="setup-title">Modo clase</h1>
+      <p class="sala-lead">Abrís una sala y la proyectás. El público entra desde el celular con el QR o el código, y todos juegan el mismo comando.</p>
+      <p class="sala-lead">Acá ves en vivo cuántos empezaron y en cuántos intentos lo resolvieron, sin nombres. Al final revelás el comando y lo explicás.</p>
+      <div class="sala-field">
+        <label for="pick">comando</label>
+        <select id="pick">
+          <option value="">al azar</option>
+        </select>
+        <p class="sala-hint"># si elegís uno, no proyectes mientras elegís</p>
+      </div>
+      <button class="btn primary sala-open" id="open-room" type="button">Abrir sala</button>
+      <p class="sala-note" id="setup-note" role="status"></p>
+    </section>
+
+    <section class="sala-live" id="live" aria-labelledby="live-code" hidden>
+      <div class="sala-join">
+        <div class="sala-join-head">
+          <p class="sala-kicker"># entrá desde el celular</p>
+          <p class="sala-url" id="join-url"></p>
+        </div>
+        <svg class="qr" id="qr" role="img" aria-label="Código QR para entrar a la sala"></svg>
+        <div class="sala-join-code">
+          <p class="sala-kicker"># código de la sala</p>
+          <h1 class="sala-code" id="live-code"></h1>
+          <p class="sala-meta" id="meta"></p>
+        </div>
+      </div>
+
+      <div class="sala-results">
+        <p class="sala-counts">
+          <span>empezaron <b id="started">—</b></span>
+          <span aria-hidden="true">·</span>
+          <span>terminaron <b id="played">—</b></span>
+        </p>
+        <div class="sala-dist" id="dist" role="group" aria-label="Resultados por intentos"></div>
+        <p class="sala-status" id="status" role="status"></p>
+        <div class="actions">
+          <button class="btn primary" id="reveal" type="button" aria-expanded="false" aria-controls="answer">Revelar comando</button>
+          <button class="btn" id="new-room" type="button">Nueva sala</button>
+        </div>
+      </div>
+
+      <article class="man sala-answer" id="answer" aria-label="El comando de la sala" hidden></article>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>hecho por <a href="https://valentorassa.com" rel="noopener">VT Security</a></span>
+    <span><a href="./">jugar el comando de hoy</a> · sin cookies · cada sala cuenta partidas, no personas</span>
+  </footer>
+</body>
+</html>

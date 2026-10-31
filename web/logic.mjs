@@ -92,13 +92,19 @@ export function letterState(guesses, answerId) {
   return state;
 }
 
-/** Spoiler-free result to paste, same format as the terminal. */
-export function shareText(day, guesses, answerId, practice) {
+/**
+ * Spoiler-free result to paste, same format as the terminal. `room` (web
+ * only, modo clase) titles it with the room code instead of the day; without
+ * it the text is exactly the terminal's.
+ */
+export function shareText(day, guesses, answerId, practice, room) {
   const won = guesses.at(-1) === answerId;
   const result = won ? String(guesses.length) : "X";
-  const title = practice
-    ? `comandle (práctica) ${result}/${MAX_TRIES}`
-    : `comandle #${day} ${result}/${MAX_TRIES}`;
+  const title = room
+    ? `comandle (sala ${room}) ${result}/${MAX_TRIES}`
+    : practice
+      ? `comandle (práctica) ${result}/${MAX_TRIES}`
+      : `comandle #${day} ${result}/${MAX_TRIES}`;
   const rows = guesses.map((g) =>
     score(g, answerId)
       .map((m) => (m === CORRECT ? "🟩" : m === PRESENT ? "🟨" : "⬛"))

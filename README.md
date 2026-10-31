@@ -53,6 +53,28 @@ Para previsualizar la web localmente: `node scripts/preview.mjs` y abrí
 para probar un cambio del backend, definí `COMANDLE_API_URL` con la URL local de
 `/api/comandle`. Jugar en localhost no manda eventos al contador de producción.
 
+## Modo clase
+
+Para una charla o una clase: abrí https://comandle.valentorassa.com/sala.html en
+la pantalla que proyectás, elegí un comando (o dejalo al azar: nunca toca el del
+día) y tocá «Abrir sala». La pantalla muestra un código de 4 caracteres, la
+dirección corta (`comandle.valentorassa.com/?sala=CÓDIGO`) y un QR. El público
+entra desde el celular y todos juegan el mismo comando, con el mismo tablero y
+las mismas pistas.
+
+Mientras juegan, la pantalla muestra en vivo cuántos empezaron, cuántos
+terminaron y en cuántos intentos (o sin resolver), sin nombres. Cuando quieras,
+«Revelar comando» muestra el comando con su explicación, sus ejemplos y la nota
+de seguridad, para explicarlo en voz alta.
+
+- El código lleva adentro qué comando es (y un número al azar), así que no hace
+  falta crear nada en un servidor. Un código inválido lleva al comando del día.
+- La ronda de una sala no toca tu racha, tus estadísticas ni el ranking del
+  día, y no suma a las partidas diarias. Si recargás el celular, vuelve donde
+  estabas.
+- Las salas cuentan por día: la misma sala al día siguiente arranca de cero.
+- La pantalla del presentador solo lee los contadores de la sala; no cuenta nada.
+
 ## Instalación
 
 Con Go 1.27 o superior:
@@ -88,9 +110,12 @@ el resultado, suma 1 a un contador del día y a otro de la hora en que llega
 (hora de Argentina; la anota el servidor, el juego no manda nada más). Así sabemos
 cuántas partidas hay, en cuántos intentos se resuelven, cuántos días seguidos se
 juega (en tramos) y de qué sitio y a qué hora llegan las visitas, sin IP ni
-identificador. Si tu navegador tiene
-activado Global Privacy Control, no manda eventos. Consultar el ranking solo lee
-los contadores públicos.
+identificador. En una sala (modo clase), en vez de eso suma 1 al contador de esa
+sala en el día, cuando empezás y cuando terminás (en cuántos intentos o sin
+resolver): el código de la sala es al azar y no identifica a nadie, y lo que se
+guarda es cuántos jugaron en esa sala, no quiénes. Si tu navegador tiene
+activado Global Privacy Control, no manda eventos. Consultar el ranking o la
+pantalla de una sala solo lee los contadores públicos.
 
 En la terminal, tus estadísticas quedan en un archivo que
 solo puede leer tu usuario: `$XDG_STATE_HOME/comandle/stats.json` si definiste
@@ -112,7 +137,10 @@ with examples and a security note. The terminal version has no network access
 and no telemetry; stats stay in a local file. The web adds 1 to anonymous daily
 counters (rounds, results, where visits come from), with no cookies or
 identifiers, and sends no play events when Global Privacy Control is on. Public
-daily counts and an anonymous ranking are available in the browser. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
+daily counts and an anonymous ranking are available in the browser. For talks
+and classes, sala.html opens a room: the audience joins with a 4-character code
+or a QR, everyone plays the same command, and the presenter's screen shows live
+anonymous results per room and day before revealing the explanation. Play it at https://comandle.valentorassa.com or install it with `go install github.com/legiosai/comandle@latest`.
 
 ## Licencia
 

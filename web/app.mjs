@@ -18,6 +18,7 @@ import {
 } from "./logic.mjs";
 import { count, playedStreak, refFrom, referrerHost, streakBucket } from "./stats.mjs";
 import { initCommunity } from "./community.mjs";
+import { normalizeRoom, restoredGuesses, roomCommand, roomResultKey } from "./sala.mjs";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => {
@@ -111,7 +112,9 @@ const won = () => game.guesses.at(-1) === game.answer.id;
 const over = () => won() || game.guesses.length >= MAX_TRIES;
 const answerLen = () => len32(game.answer.id);
 const misses = () => game.guesses.length - (won() ? 1 : 0);
-const dayLabel = () => (game.practice ? "práctica" : `#${game.day}`);
+const dayLabel = () => (game.room ? `sala ${game.room}` : game.practice ? "práctica" : `#${game.day}`);
+// The daily round is the only one that keeps stats, history and the daily counters.
+const isDaily = () => !game.practice && !game.room;
 
 function statsNow() {
   return { played: 0, wins: 0, streak: 0, maxStreak: 0, dist: [0, 0, 0, 0, 0, 0], ...store.get("comandle:stats", {}) };
@@ -567,6 +570,18 @@ function startDaily() {
   if (over()) showEnd(false);
 }
 
+// Modo clase: the command of a room opened on the presenter's screen
+// (sala.html). Its progress lives apart, in comandle:sala, so a reload brings
+// the round back; it never touches the daily's state, stats or history, and
+// it reports to the room's counter instead of the daily ones.
+function startRoom(code, answer) {
+  const day = dayNumber(Date.now());
+  const guesses = restoredGuesses(store.get("comandle:sala", null), code, day);
+  game = { answer, day, practice: false, room: code, guesses, current: "" };
+  setupRound();
+  if (over()) showEnd(false);
+}
+
 function startPractice() {
   const answer = commands[Math.floor(Math.random() * commands.length)];
   game = { answer, day: 0, practice: true, guesses: [], current: "" };
@@ -589,6 +604,7 @@ function setupRound() {
   $("result").replaceChildren();
   $("game").classList.remove("over");
   document.body.style.setProperty("--len", String(len));
+  document.title = game.room ? `comandle · sala ${game.room}` : "comandle";
   buildBoard();
   render();
   if (!over()) say(restingLine(), { speak: false });
@@ -599,6 +615,7 @@ function setupRound() {
 function render() {
   $("day").textContent = dayLabel();
   $("day").classList.toggle("practice", game.practice);
+  $("day").classList.toggle("room", Boolean(game.room));
   paintBoard();
   paintClues();
   paintSuggest();
@@ -870,11 +887,11 @@ function setCompact(on) {
 
 // ------------------------------------------------------------------ input
 
-function toast(message) {
+function toast(message, ms = 2800) {
   const t = $("toast");
   t.textContent = message;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.textContent = ""), 2800);
+  toastTimer = setTimeout(() => (t.textContent = ""), ms);
 }
 
 function wobble() {
@@ -965,8 +982,13 @@ function submit(len) {
   game.guesses.push(guess);
   game.current = "";
   comp = null;
-  if (!game.practice && game.guesses.length === 1) count("start", "-");
-  if (!game.practice) store.set("comandle:today", { day: game.day, guesses: game.guesses });
+  if (game.room) {
+    if (game.guesses.length === 1) count("sala", `${game.room}:start`);
+    store.set("comandle:sala", { code: game.room, day: game.day, guesses: game.guesses });
+  } else if (!game.practice) {
+    if (game.guesses.length === 1) count("start", "-");
+    store.set("comandle:today", { day: game.day, guesses: game.guesses });
+  }
   busy = true;
   sound.play("enter");
   const row = game.guesses.length - 1;
@@ -990,7 +1012,8 @@ function submit(len) {
 
 // A round just ended in this session (restored rounds go straight to showEnd).
 function finish() {
-  if (!game.practice) {
+  if (game.room) count("sala", roomResultKey(game.room, won(), game.guesses.length));
+  if (isDaily()) {
     store.set("comandle:stats", recordStats(store.get("comandle:stats", {}), game.day, won(), game.guesses.length));
     const history = store.get("comandle:history", []);
     if (Array.isArray(history) && !history.some((h) => h.day === game.day)) {
@@ -1137,7 +1160,7 @@ function buildResult(animate) {
   sc.append(el("b", null, `${win ? game.guesses.length : "X"}/${MAX_TRIES}`), sub);
   top.append(mini, sc);
 
-  const share = shareText(game.day, game.guesses, c.id, game.practice);
+  const share = shareText(game.day, game.guesses, c.id, game.practice, game.room);
   const actions = el("div", "actions");
   const copy = el("button", "btn primary", "copiar resultado");
   copy.type = "button";
@@ -1147,9 +1170,18 @@ function buildResult(animate) {
   again.title = "Una ronda con un comando al azar";
   again.addEventListener("click", startPractice);
   actions.append(copy, again);
+  if (game.room) {
+    const today = el("button", "btn", "jugar el de hoy");
+    today.type = "button";
+    today.title = "El comando del día, el mismo para todos";
+    today.addEventListener("click", () => location.assign(location.pathname));
+    actions.append(today);
+  }
   res.append(top, actions);
 
-  if (!game.practice) {
+  if (game.room) {
+    res.append(el("p", "count", "# mirá la pantalla: ahí van los resultados de la sala"));
+  } else if (!game.practice) {
     const count = el("p", "count");
     const time = el("time");
     count.append("# próximo en ", time);
@@ -1188,7 +1220,8 @@ function copyShare(text, button, box) {
   writeClipboard(text).then(
     () => {
       sound.play("key");
-      count("share", "-");
+      // A room's shares would skew the daily share/finish ratio: rooms do not send finish.
+      if (!game.room) count("share", "-");
       button.textContent = "copiado";
       setTimeout(() => (button.textContent = "copiar resultado"), 1800);
     },
@@ -1444,7 +1477,7 @@ function renderStats() {
   const dist = $("stats-dist");
   dist.replaceChildren();
   const top = Math.max(1, ...s.dist);
-  const today = game && !game.practice && over() && won() ? game.guesses.length - 1 : -1;
+  const today = game && isDaily() && over() && won() ? game.guesses.length - 1 : -1;
   const fills = [];
   s.dist.forEach((n, i) => {
     const bar = el("div", "bar");
@@ -1577,6 +1610,8 @@ function wire() {
 }
 
 async function main() {
+  // ?sala=CODE (modo clase) plays that room's command instead of the daily.
+  const room = new URLSearchParams(location.search).get("sala");
   buildKeyboard();
   buildBuddyPicker();
   paintBuddyControls();
@@ -1597,7 +1632,21 @@ async function main() {
     $("clues").replaceChildren(li);
     return;
   }
-  startDaily();
+  let lost = false;
+  if (room === null) {
+    startDaily();
+  } else {
+    const code = normalizeRoom(room);
+    const answer = roomCommand(commands, code);
+    if (answer) {
+      startRoom(code, answer);
+    } else {
+      // A mistyped or unknown code: the daily, and a link without it.
+      dropParam("sala");
+      startDaily();
+      lost = true;
+    }
+  }
   document.fonts?.ready.then(() => {
     cow.charW = 0;
     drawCow();
@@ -1607,13 +1656,28 @@ async function main() {
     store.set("comandle:seen", true);
     openHelp();
   }
+  if (lost) {
+    const tell = () => toast("Esa sala no existe; te dejo el comando de hoy.", 5000);
+    if ($("help").open) $("help").addEventListener("close", tell, { once: true });
+    else tell();
+  }
+}
+
+// The address without one query parameter, keeping the others and the hash.
+function dropParam(name) {
+  const params = new URLSearchParams(location.search);
+  if (!params.has(name)) return;
+  params.delete(name);
+  const rest = params.toString();
+  window.history.replaceState(null, "", location.pathname + (rest ? `?${rest}` : "") + location.hash);
 }
 
 // Where this visit came from, counted once per tab. The ?ref= then leaves the
-// address bar, so a link copied from here does not carry it.
+// address bar, so a link copied from here does not carry it; a ?sala= stays,
+// so a reload goes back to the same room.
 function arrived() {
   const search = location.search;
-  if (new URLSearchParams(search).has("ref")) window.history.replaceState(null, "", location.pathname + location.hash);
+  dropParam("ref");
   try {
     if (sessionStorage.getItem("comandle:counted")) return;
     sessionStorage.setItem("comandle:counted", "1");

@@ -14,9 +14,12 @@ createServer(async (request, response) => {
   response.setHeader("Cache-Control", "no-store");
   if (!["GET", "HEAD"].includes(request.method)) { response.writeHead(405).end(); return; }
   try {
-    const path = new URL(request.url, "http://localhost").pathname;
+    const url = new URL(request.url, "http://localhost");
+    const path = url.pathname;
     if (path === "/api/comandle") {
-      const upstream = await fetch(api, { signal: AbortSignal.timeout(10_000) });
+      // Only ?sala= (modo clase) goes upstream: the rest of the query is not the API's.
+      const sala = url.searchParams.get("sala");
+      const upstream = await fetch(sala === null ? api : `${api}?sala=${encodeURIComponent(sala)}`, { signal: AbortSignal.timeout(10_000) });
       response.setHeader("Content-Type", "application/json");
       response.writeHead(upstream.status);
       response.end(request.method === "HEAD" ? undefined : Buffer.from(await upstream.arrayBuffer()));
@@ -26,7 +29,7 @@ createServer(async (request, response) => {
     const file = resolve(base, "." + (path === "/" ? "/index.html" : decodeURIComponent(path)));
     if (!file.startsWith(base + sep)) { response.writeHead(403).end(); return; }
     let content = await readFile(file);
-    if (file.endsWith("/index.html")) content = Buffer.from(content.toString().replace(
+    if (/\/(index|sala)\.html$/.test(file)) content = Buffer.from(content.toString().replace(
       '<meta name="comandle-stats-api" content="https://vtsecurity.com.ar/api/comandle">',
       '<meta name="comandle-stats-api" content="/api/comandle">',
     ));

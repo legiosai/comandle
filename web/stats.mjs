@@ -2,7 +2,8 @@
 // in Pluma (vtsecurity.com.ar), and to an hourly one by the time Pluma receives
 // it (Argentina time; the game sends nothing extra): how many rounds start and
 // end, in how many tries, how many days in a row people play, and where and
-// when visits come from.
+// when visits come from. A room round (modo clase, sala.mjs) sends "sala"
+// events instead, counted per random room code and day.
 // Nothing identifies the player: no cookies, no ID, no IP kept. The terminal
 // version never connects to the network.
 

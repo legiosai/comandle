@@ -30,7 +30,8 @@ jobs:
         run: |
           mkdir _site
           cp web/index.html web/style.css web/app.mjs web/logic.mjs web/stats.mjs web/community.mjs web/robots.txt web/sitemap.xml _site/
-          cp -R web/fonts web/img _site/
+          cp web/sala.html web/sala.mjs web/presentador.mjs _site/
+          cp -R web/fonts web/img web/vendor _site/
           cp data/commands.json data/allowed.txt _site/
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

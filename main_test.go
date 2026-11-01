@@ -8,6 +8,7 @@ import (
 
 	"github.com/legiosai/comandle/data"
 	"github.com/legiosai/comandle/internal/game"
+	"github.com/legiosai/comandle/internal/ui"
 )
 
 var launchDay = time.Date(2026, 10, 20, 15, 0, 0, 0, game.Argentina)
@@ -153,28 +154,64 @@ func TestPracticeWithACommand(t *testing.T) {
 }
 
 func TestPracticeArgs(t *testing.T) {
+	type o = practiceOpts
 	for _, tc := range []struct {
-		args    []string
-		pick    string
-		letters int
-		bad     bool
+		args []string
+		want practiceOpts
+		bad  bool
 	}{
-		{nil, "", 0, false},
-		{[]string{"nmap"}, "nmap", 0, false},
-		{[]string{"-l", "4"}, "", 4, false},
-		{[]string{"-l5"}, "", 5, false},
-		{[]string{"-l=6"}, "", 6, false},
-		{[]string{"--letras", "4"}, "", 4, false},
-		{[]string{"--letras=4"}, "", 4, false},
-		{[]string{"nmap", "-l", "4"}, "", 0, true},
-		{[]string{"-l"}, "", 0, true},
-		{[]string{"-l", "x"}, "", 0, true},
-		{[]string{"-l", "0"}, "", 0, true},
-		{[]string{"a", "b"}, "", 0, true},
+		{nil, o{}, false},
+		{[]string{"nmap"}, o{pick: "nmap"}, false},
+		{[]string{"-l", "4"}, o{letters: 4}, false},
+		{[]string{"-l5"}, o{letters: 5}, false},
+		{[]string{"-l=6"}, o{letters: 6}, false},
+		{[]string{"--letras", "4"}, o{letters: 4}, false},
+		{[]string{"--letras=4"}, o{letters: 4}, false},
+		{[]string{"-c", "redes"}, o{category: "redes"}, false},
+		{[]string{"-credes"}, o{category: "redes"}, false},
+		{[]string{"-c=redes"}, o{category: "redes"}, false},
+		{[]string{"--categoria", "Redes"}, o{category: "redes"}, false},
+		{[]string{"--categoría=redes"}, o{category: "redes"}, false},
+		{[]string{"-n", "básico"}, o{level: "básico"}, false},
+		{[]string{"-n", "basico"}, o{level: "básico"}, false},
+		{[]string{"-n", "ba\u0301sico"}, o{level: "básico"}, false},
+		{[]string{"-nintermedio"}, o{level: "intermedio"}, false},
+		{[]string{"--nivel=AVANZADO"}, o{level: "avanzado"}, false},
+		{[]string{"-c", "texto", "-n", "básico", "-l", "4"}, o{letters: 4, category: "texto", level: "básico"}, false},
+		{[]string{"nmap", "-l", "4"}, o{}, true},
+		{[]string{"nmap", "-c", "redes"}, o{}, true},
+		{[]string{"-n", "básico", "nmap"}, o{}, true},
+		{[]string{"-l"}, o{}, true},
+		{[]string{"-l", "x"}, o{}, true},
+		{[]string{"-l", "0"}, o{}, true},
+		{[]string{"-c"}, o{}, true},
+		{[]string{"-c="}, o{}, true},
+		{[]string{"-c", "red"}, o{}, true},
+		{[]string{"-n"}, o{}, true},
+		{[]string{"-n", "facil"}, o{}, true},
+		{[]string{"a", "b"}, o{}, true},
 	} {
-		pick, letters, err := practiceArgs(tc.args)
-		if (err != nil) != tc.bad || pick != tc.pick || letters != tc.letters {
-			t.Errorf("practiceArgs(%q) = %q, %d, %v", tc.args, pick, letters, err)
+		got, err := practiceArgs(tc.args)
+		if (err != nil) != tc.bad || got != tc.want {
+			t.Errorf("practiceArgs(%q) = %+v, %v", tc.args, got, err)
+		}
+	}
+}
+
+// A missing or mistyped category or level lists the valid ones.
+func TestPracticeArgsListValues(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"-c"}, "Falta la categoría. Elegí una: " + strings.Join(game.Categories, ", ") + "."},
+		{[]string{"-c", "red"}, "«red» no es una categoría. Elegí una: " + strings.Join(game.Categories, ", ") + "."},
+		{[]string{"--nivel"}, "Falta el nivel. Elegí uno: básico, intermedio, avanzado."},
+		{[]string{"-n", "facil"}, "«facil» no es un nivel. Elegí uno: básico, intermedio, avanzado."},
+	} {
+		_, err := practiceArgs(tc.args)
+		if err == nil || err.Error() != tc.want {
+			t.Errorf("practiceArgs(%q) error = %v, want %q", tc.args, err, tc.want)
 		}
 	}
 }
@@ -191,5 +228,98 @@ func TestPracticeLetters(t *testing.T) {
 	}
 	if code := run([]string{"practica", "-l", "x"}, nil, &out, launchDay); code != 2 {
 		t.Errorf("bad -l should exit 2, got %d", code)
+	}
+}
+
+// practica -c -n only ever picks a command of that category and level.
+func TestPracticeFilters(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	t.Setenv("NO_COLOR", "1")
+	b, _ := game.Load(data.Commands, data.Allowed)
+	for range 30 {
+		var out bytes.Buffer
+		if code := run([]string{"practica", "-c", "redes", "-n", "basico"}, strings.NewReader("salir\n"), &out, launchDay); code != 0 {
+			t.Fatalf("exit %d\n%s", code, out.String())
+		}
+		got := out.String()
+		_, after, ok := strings.Cut(got, "Práctica cortada. Era ")
+		if !ok {
+			t.Fatalf("no answer in the output:\n%s", got)
+		}
+		id := strings.TrimSuffix(strings.Fields(after)[0], ".")
+		c, ok := b.Get(id)
+		if !ok || c.Category != "redes" || c.Level != "básico" {
+			t.Fatalf("practica -c redes -n basico played %q", id)
+		}
+		if !strings.Contains(got, "categoría: redes") {
+			t.Errorf("the header should show the category:\n%s", got)
+		}
+	}
+
+	var out bytes.Buffer
+	if code := run([]string{"practica", "-c", "redes", "nmap"}, nil, &out, launchDay); code != 2 {
+		t.Errorf("-c with a command should exit 2, got %d", code)
+	}
+	if code := run([]string{"practica", "-n", "experto"}, nil, &out, launchDay); code != 2 {
+		t.Errorf("an unknown level should exit 2, got %d", code)
+	}
+
+	// A category and a level with no command between them, if the data has one.
+	for _, cat := range game.Categories {
+		for _, lvl := range game.Levels {
+			if len(practicePool(b.Commands, practiceOpts{category: cat, level: lvl})) > 0 {
+				continue
+			}
+			out.Reset()
+			if code := run([]string{"practica", "-c", cat, "-n", lvl}, nil, &out, launchDay); code != 1 {
+				t.Errorf("-c %s -n %s has no commands and should exit 1, got %d", cat, lvl, code)
+			}
+			if want := "No hay comandos con categoría " + cat + " y nivel " + lvl + "."; !strings.Contains(out.String(), want) {
+				t.Errorf("output lacks %q:\n%s", want, out.String())
+			}
+			return
+		}
+	}
+}
+
+// When nothing is left, the hints name the values that would leave something.
+func TestNoPracticeHints(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	cmds := []game.Command{
+		{ID: "grep", Category: "texto", Level: "básico"},
+		{ID: "nmap", Category: "redes", Level: "intermedio"},
+		{ID: "tcpdump", Category: "redes", Level: "avanzado"},
+	}
+	for _, tc := range []struct {
+		opts practiceOpts
+		want []string
+	}{
+		{practiceOpts{category: "texto", level: "avanzado"}, []string{
+			"No hay comandos con categoría texto y nivel avanzado.",
+			"Probá otra categoría: redes.",
+			"Probá otro nivel: básico.",
+		}},
+		{practiceOpts{letters: 5, category: "redes"}, []string{
+			"No hay comandos de 5 letras con categoría redes.",
+			"Probá otra cantidad de letras: 4, 7.",
+		}},
+		{practiceOpts{letters: 99}, []string{
+			"No hay comandos de 99 letras.",
+			"Probá otra cantidad de letras: 4, 7.",
+		}},
+		{practiceOpts{letters: 5, category: "texto", level: "avanzado"}, []string{
+			"No hay comandos de 5 letras con categoría texto y nivel avanzado.",
+			"Probá con menos filtros.",
+		}},
+	} {
+		var out bytes.Buffer
+		noPractice(cmds, ui.New(&out), tc.opts)
+		var lines []string
+		for l := range strings.SplitSeq(strings.TrimSpace(out.String()), "\n") {
+			lines = append(lines, strings.TrimSpace(l))
+		}
+		if strings.Join(lines, "\n") != strings.Join(tc.want, "\n") {
+			t.Errorf("noPractice(%+v):\n%s\nwant:\n%s", tc.opts, strings.Join(lines, "\n"), strings.Join(tc.want, "\n"))
+		}
 	}
 }

@@ -46,12 +46,12 @@ func run(args []string, in io.Reader, out io.Writer, now time.Time) int {
 	case "", "hoy", "jugar":
 		return daily(book, u, in, now)
 	case "practica", "práctica", "practice":
-		pick, letters, err := practiceArgs(args[1:])
+		opts, err := practiceArgs(args[1:])
 		if err != nil {
 			u.Problem(err.Error())
 			return 2
 		}
-		return practice(book, u, in, pick, letters)
+		return practice(book, u, in, opts)
 	case "explicar", "explain":
 		if len(args) < 2 {
 			u.Problem("Uso: comandle explicar <comando>")
@@ -92,6 +92,9 @@ func help(out io.Writer) {
   comandle                  juega el comandle de hoy
   comandle practica [cmd]   una ronda que no suma a tus estadísticas: al azar, o con ese comando
   comandle practica -l 5    lo mismo pero con un comando de 5 letras (también --letras)
+  comandle practica -c redes -n básico
+                            al azar entre los de esa categoría y ese nivel (también
+                            --categoria y --nivel); se combinan entre sí y con -l
   comandle explicar <cmd>   explica un comando de la lista
   comandle lista            los comandos de los días que ya pasaron
   comandle stats            tus estadísticas
@@ -156,70 +159,195 @@ func daily(book *game.Book, u *ui.UI, in io.Reader, now time.Time) int {
 	return 0
 }
 
-// practiceArgs parses the arguments after "practica": an optional command name
-// or an optional -l <letras> (also -l=5, -l5 or --letras 5), not both: a command
-// already fixes its length. letters is 0 when not given.
-func practiceArgs(args []string) (pick string, letters int, err error) {
-	errN := errors.New("Uso: comandle practica [cmd | -l <letras>]")
-	for i := 0; i < len(args); i++ {
-		a := args[i]
-		val, isN := "", false
-		switch {
-		case a == "-l" || a == "--letras":
-			isN = true
-			if i+1 >= len(args) {
-				return "", 0, errN
+// practiceOpts is what "practica" was asked for: one command to play, or the
+// filters for a random one. Zero values mean any.
+type practiceOpts struct {
+	pick     string // a command name: play that one
+	letters  int    // -l/--letras
+	category string // -c/--categoria, one of game.Categories
+	level    string // -n/--nivel, one of game.Levels
+}
+
+func (o practiceOpts) filtered() bool { return o.letters != 0 || o.category != "" || o.level != "" }
+
+// practiceFlags are the filters "practica" takes, by short and long name.
+var practiceFlags = []struct{ short, long string }{
+	{"-l", "--letras"},
+	{"-c", "--categoria"},
+	{"-n", "--nivel"},
+}
+
+// practiceFlag reports whether a is one of practiceFlags, by its short name,
+// and the value when it comes attached: -l5, -l=5 or --letras=5. Long names
+// also work with an accent or in capitals (--categoría).
+func practiceFlag(a string) (flag, val string, attached, ok bool) {
+	for _, f := range practiceFlags {
+		if strings.HasPrefix(a, "--") {
+			name, v, eq := strings.Cut(a, "=")
+			if fold(name) == f.long {
+				return f.short, v, eq, true
 			}
-			i++
-			val = args[i]
-		case strings.HasPrefix(a, "--letras="):
-			isN, val = true, strings.TrimPrefix(a, "--letras=")
-		case strings.HasPrefix(a, "-l="):
-			isN, val = true, strings.TrimPrefix(a, "-l=")
-		case strings.HasPrefix(a, "-l"):
-			isN, val = true, strings.TrimPrefix(a, "-l")
-		}
-		if isN {
-			n, convErr := strconv.Atoi(val)
-			if convErr != nil || n < 1 {
-				return "", 0, errors.New("-l tiene que ser un número de letras mayor que 0.")
-			}
-			letters = n
 			continue
 		}
-		if pick != "" {
-			return "", 0, errN
+		if a == f.short {
+			return f.short, "", false, true
 		}
-		pick = a
+		if rest, found := strings.CutPrefix(a, f.short); found {
+			return f.short, strings.TrimPrefix(rest, "="), true, true
+		}
 	}
-	if pick != "" && letters != 0 {
-		return "", 0, errN
+	return "", "", false, false
+}
+
+// practiceArgs parses the arguments after "practica": an optional command
+// name, or the filters -l <letras>, -c <categoría> and -n <nivel> in any
+// combination (each also as -l5, -l=5, --letras 5 or --letras=5). Not a
+// command and a filter: the command already decides all of that.
+func practiceArgs(args []string) (practiceOpts, error) {
+	usage := errors.New("Uso: comandle practica [cmd | -c <categoría> -n <nivel> -l <letras>]")
+	var o practiceOpts
+	for i := 0; i < len(args); i++ {
+		flag, val, attached, ok := practiceFlag(args[i])
+		if !ok {
+			if o.pick != "" {
+				return practiceOpts{}, usage
+			}
+			o.pick = args[i]
+			continue
+		}
+		if !attached {
+			if i+1 < len(args) {
+				i++
+				val = args[i]
+			} else if flag == "-l" {
+				return practiceOpts{}, usage
+			}
+		}
+		var err error
+		switch flag {
+		case "-l":
+			n, convErr := strconv.Atoi(val)
+			if convErr != nil || n < 1 {
+				return practiceOpts{}, errors.New("-l tiene que ser un número de letras mayor que 0.")
+			}
+			o.letters = n
+		case "-c":
+			o.category, err = option(game.Categories, val, "Falta la categoría", "no es una categoría", "Elegí una")
+		case "-n":
+			o.level, err = option(game.Levels, val, "Falta el nivel", "no es un nivel", "Elegí uno")
+		}
+		if err != nil {
+			return practiceOpts{}, err
+		}
 	}
-	return pick, letters, nil
+	if o.pick != "" && o.filtered() {
+		return practiceOpts{}, usage
+	}
+	return o, nil
+}
+
+// option returns the one of options that val names, ignoring case and
+// accents, so -n basico is básico. When there is none, the error lists them.
+func option(options []string, val, missing, unknown, choose string) (string, error) {
+	list := " " + choose + ": " + strings.Join(options, ", ") + "."
+	if strings.TrimSpace(val) == "" {
+		return "", errors.New(missing + "." + list)
+	}
+	for _, o := range options {
+		if fold(o) == fold(val) {
+			return o, nil
+		}
+	}
+	return "", errors.New("«" + val + "» " + unknown + "." + list)
+}
+
+// unaccent also drops a combining acute, for input typed already decomposed.
+var unaccent = strings.NewReplacer("á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u", "\u0301", "")
+
+func fold(s string) string { return unaccent.Replace(strings.ToLower(strings.TrimSpace(s))) }
+
+// practicePool is every command the filters allow, in calendar order.
+func practicePool(cmds []game.Command, o practiceOpts) []*game.Command {
+	var pool []*game.Command
+	for i := range cmds {
+		c := &cmds[i]
+		if (o.letters == 0 || len([]rune(c.ID)) == o.letters) &&
+			(o.category == "" || c.Category == o.category) &&
+			(o.level == "" || c.Level == o.level) {
+			pool = append(pool, c)
+		}
+	}
+	return pool
+}
+
+// noPractice says that the filters leave no command and, for each filter
+// given, which other values would leave some with the rest unchanged.
+func noPractice(cmds []game.Command, u *ui.UI, o practiceOpts) {
+	msg := "No hay comandos"
+	if o.letters != 0 {
+		msg += fmt.Sprintf(" de %d letras", o.letters)
+	}
+	var with []string
+	if o.category != "" {
+		with = append(with, "categoría "+o.category)
+	}
+	if o.level != "" {
+		with = append(with, "nivel "+o.level)
+	}
+	if len(with) > 0 {
+		msg += " con " + strings.Join(with, " y ")
+	}
+	u.Problem(msg + ".")
+
+	hinted := false
+	hint := func(label string, values []string, swap func(*practiceOpts, string)) {
+		var left []string
+		for _, v := range values {
+			alt := o
+			swap(&alt, v)
+			if len(practicePool(cmds, alt)) > 0 {
+				left = append(left, v)
+			}
+		}
+		if len(left) > 0 {
+			u.Problem(label + ": " + strings.Join(left, ", ") + ".")
+			hinted = true
+		}
+	}
+	if o.category != "" {
+		hint("Probá otra categoría", game.Categories, func(a *practiceOpts, v string) { a.category = v })
+	}
+	if o.level != "" {
+		hint("Probá otro nivel", game.Levels, func(a *practiceOpts, v string) { a.level = v })
+	}
+	if o.letters != 0 {
+		var lengths []string
+		for n := game.MinLen; n <= game.MaxLen; n++ {
+			lengths = append(lengths, strconv.Itoa(n))
+		}
+		hint("Probá otra cantidad de letras", lengths, func(a *practiceOpts, v string) { a.letters, _ = strconv.Atoi(v) })
+	}
+	if !hinted {
+		u.Problem("Probá con menos filtros.")
+	}
 }
 
 // practice plays a round that does not count. With a command name it plays
-// that one, so a teacher can hand the class a specific command. With letters
-// it picks a random command of that length.
-func practice(book *game.Book, u *ui.UI, in io.Reader, pick string, letters int) int {
+// that one, so a teacher can hand the class a specific command. Otherwise it
+// picks a random command among the ones the filters allow.
+func practice(book *game.Book, u *ui.UI, in io.Reader, o practiceOpts) int {
 	var answer *game.Command
-	if pick == "" {
-		var pool []*game.Command
-		for i := range book.Commands {
-			c := &book.Commands[i]
-			if letters == 0 || len([]rune(c.ID)) == letters {
-				pool = append(pool, c)
-			}
-		}
+	if o.pick == "" {
+		pool := practicePool(book.Commands, o)
 		if len(pool) == 0 {
-			u.Problem(fmt.Sprintf("No hay comandos de %d letras.", letters))
+			noPractice(book.Commands, u, o)
 			return 1
 		}
 		answer = pool[rand.IntN(len(pool))]
 	} else {
-		c, ok := book.Get(pick)
+		c, ok := book.Get(o.pick)
 		if !ok {
-			u.Problem("«" + pick + "» no está en la lista de comandos del juego.")
+			u.Problem("«" + o.pick + "» no está en la lista de comandos del juego.")
 			return 1
 		}
 		answer = c

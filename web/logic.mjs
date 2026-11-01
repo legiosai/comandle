@@ -132,3 +132,34 @@ export function recordStats(stats, day, won, tries) {
   s.lastWon = won;
   return s;
 }
+
+// Categories and levels a command may declare, in the order of
+// internal/game. The practice filters list them like this.
+export const CATEGORIES = ["archivos", "texto", "procesos", "redes", "permisos", "sistema", "seguridad", "paquetes", "git", "contenedores"];
+export const LEVELS = ["básico", "intermedio", "avanzado"];
+
+/**
+ * The practice filter saved in this browser, { category, level }, where ""
+ * means any. A value that is not a category or a level (an old one, a
+ * hand-edited one) reads as any.
+ */
+export function practiceFilter(saved) {
+  return {
+    category: CATEGORIES.includes(saved?.category) ? saved.category : "",
+    level: LEVELS.includes(saved?.level) ? saved.level : "",
+  };
+}
+
+/** The commands a practice round can pick, as `comandle practica -c -n`. */
+export function practicePool(commands, { category = "", level = "" } = {}) {
+  return commands.filter((c) => (!category || c.category === category) && (!level || c.level === level));
+}
+
+/**
+ * A random command of the pool for the next practice round, other than
+ * `lastId` (the one just played) while the pool has another.
+ */
+export function pickPractice(pool, lastId, random = Math.random) {
+  const rest = pool.length > 1 ? pool.filter((c) => c.id !== lastId) : pool;
+  return rest[Math.floor(random() * rest.length)];
+}

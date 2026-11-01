@@ -42,6 +42,11 @@ tocás, corre `fortune`. Por defecto es vt, el pingüino; desde el selector pod�
 cambiarlo por la vaca, un conejo, un gato, un búho, un cangrejo o un fantasma, y
 la web recuerda tu elección.
 
+Cuando termina la ronda, «practicar» juega otra con un comando al azar, que no
+suma a tus estadísticas ni al ranking. Debajo elegís categoría y nivel (por
+ejemplo, redes y básico) y ves cuántos comandos quedan; la web recuerda la
+elección.
+
 Debajo del título se ven las partidas terminadas hoy, ayer y desde el lanzamiento
 público (28/10/2026). Tocá ese contador para abrir el ranking: agrupa los resultados
 por intentos, comparte puesto entre empates y resalta tu resultado guardado en
@@ -90,14 +95,21 @@ SHA256 contra `SHA256SUMS`.
 ## Comandos
 
 ```bash
-comandle                  # el comandle de hoy
-comandle practica         # una ronda al azar que no suma a tus estadísticas
-comandle practica nmap    # practicá un comando puntual (sirve para dar en clase)
-comandle practica -l 5    # una ronda al azar con un comando de 5 letras (o --letras 5)
-comandle explicar chmod   # la ficha de cualquier comando de la lista
-comandle lista            # los comandos de los días que ya pasaron
-comandle stats            # tus estadísticas y tu racha
+comandle                              # el comandle de hoy
+comandle practica                     # una ronda al azar que no suma a tus estadísticas
+comandle practica nmap                # practicá un comando puntual (sirve para dar en clase)
+comandle practica -l 5                # una ronda al azar con un comando de 5 letras (o --letras 5)
+comandle practica -c redes -n básico  # al azar entre los de redes de nivel básico
+comandle explicar chmod               # la ficha de cualquier comando de la lista
+comandle lista                        # los comandos de los días que ya pasaron
+comandle stats                        # tus estadísticas y tu racha
 ```
+
+En la práctica, `-c` (o `--categoria`) elige la categoría: archivos, texto,
+procesos, redes, permisos, sistema, seguridad, paquetes, git o contenedores.
+`-n` (o `--nivel`) elige el nivel: básico, intermedio o avanzado; sin tilde
+también vale. Se combinan entre sí y con `-l`. Si no queda ningún comando,
+comandle te dice qué otros valores sí tienen.
 
 Sin colores (`NO_COLOR=1` o salida que no es una terminal), las letras se marcan
 así: `[x]` en su lugar, `(x)` en otra posición.
@@ -133,7 +145,8 @@ una nota de seguridad. Los pasos están en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 comandle is a daily Wordle-like game for Linux and security commands, played in
 the terminal or the browser and written in Spanish. When a round ends it explains the command
-with examples and a security note. The terminal version has no network access
+with examples and a security note. Practice rounds can be narrowed to a category
+and a level, in the terminal (`-c`, `-n`) and on the web. The terminal version has no network access
 and no telemetry; stats stay in a local file. The web adds 1 to anonymous daily
 counters (rounds, results, where visits come from), with no cookies or
 identifiers, and sends no play events when Global Privacy Control is on. Public

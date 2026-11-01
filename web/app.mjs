@@ -4,7 +4,9 @@
 // the round; its words also go to a live region for screen readers.
 import {
   ABSENT,
+  CATEGORIES,
   CORRECT,
+  LEVELS,
   MAX_TRIES,
   PRESENT,
   cluesVisible,
@@ -12,6 +14,9 @@ import {
   dayNumber,
   letterState,
   nextDayMs,
+  pickPractice,
+  practiceFilter,
+  practicePool,
   recordStats,
   score,
   shareText,
@@ -582,8 +587,12 @@ function startRoom(code, answer) {
   if (over()) showEnd(false);
 }
 
+// Practice: a random command, among the category and level picked under the
+// result (comandle:practica). A saved filter that leaves nothing (the button
+// is off then, but a room's "practicar" does not show it) plays any command.
 function startPractice() {
-  const answer = commands[Math.floor(Math.random() * commands.length)];
+  const pool = practicePool(commands, practiceFilter(store.get("comandle:practica", null)));
+  const answer = pickPractice(pool.length ? pool : commands, game?.answer.id);
   game = { answer, day: 0, practice: true, guesses: [], current: "" };
   setupRound();
   window.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" });
@@ -1178,6 +1187,8 @@ function buildResult(animate) {
     actions.append(today);
   }
   res.append(top, actions);
+  // A room keeps its end screen as it was: the class looks at the projector.
+  if (!game.room) res.append(practiceFilters(again));
 
   if (game.room) {
     res.append(el("p", "count", "# mirá la pantalla: ahí van los resultados de la sala"));
@@ -1199,6 +1210,43 @@ function buildResult(animate) {
     countdownTimer = setInterval(tick, 1000);
   }
   if (animate && !reduced()) res.classList.add("in");
+}
+
+// The category and level of the next practice round, saved in this browser,
+// and how many commands they leave. Only values some command has are offered;
+// a pair with no command between them turns "practicar" off.
+function practiceFilters(again) {
+  const saved = practiceFilter(store.get("comandle:practica", null));
+  const box = el("div", "pfilter");
+  box.setAttribute("role", "group");
+  box.setAttribute("aria-label", "Práctica");
+  const field = (label, any, values, value) => {
+    const wrap = el("label", "pfield");
+    const select = el("select");
+    select.append(new Option(any, ""));
+    for (const v of values) select.append(new Option(v, v));
+    select.value = values.includes(value) ? value : "";
+    wrap.append(el("span", null, label), select);
+    box.append(wrap);
+    return select;
+  };
+  const cat = field("categoría", "todas", CATEGORIES.filter((v) => commands.some((c) => c.category === v)), saved.category);
+  const lvl = field("nivel", "todos", LEVELS.filter((v) => commands.some((c) => c.level === v)), saved.level);
+  const note = el("p", "count");
+  note.setAttribute("aria-live", "polite");
+  box.append(note);
+  const sync = () => {
+    const filter = { category: cat.value, level: lvl.value };
+    const n = practicePool(commands, filter).length;
+    again.disabled = n === 0;
+    note.textContent = n ? `# ${n} ${n === 1 ? "comando" : "comandos"} para practicar` : "# 0 comandos: probá otro nivel";
+    return filter;
+  };
+  const change = () => store.set("comandle:practica", sync());
+  cat.addEventListener("change", change);
+  lvl.addEventListener("change", change);
+  sync();
+  return box;
 }
 
 function showEnd(animate) {

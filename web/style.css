@@ -499,8 +499,26 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
 .btn.primary { background: var(--purple); border-color: var(--purple); color: var(--ink); }
 .btn.primary:hover { background: #cba8fb; }
 .btn.wide { width: 100%; padding: 14px; font-size: 14px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:disabled:hover { background: none; }
 .count { margin: 0; font: 450 12.5px/1.4 var(--mono); color: var(--comment-tx); }
 .count time { color: var(--fg); font-variant-numeric: tabular-nums; }
+/* Practice filters under the result: category and level, side by side. */
+.pfilter { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-width: 360px; }
+.pfield { display: grid; gap: 6px; min-width: 0; }
+.pfield span { font: 500 11.5px/1 var(--mono); color: var(--comment-tx); }
+.pfield select {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--edge-2);
+  border-radius: 9px;
+  background: var(--bg-2);
+  color: var(--fg);
+  font: 500 13px/1.2 var(--mono);
+  cursor: pointer;
+}
+.pfilter .count { grid-column: 1 / -1; }
 .share-text {
   margin: 0;
   padding: 10px 12px;

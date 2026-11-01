@@ -218,8 +218,9 @@ func (u *UI) Words(words []string) {
 	}
 }
 
-// Problem explains why a guess was not counted.
-func (u *UI) Problem(msg string) { u.printf("  %s\n", u.paint(orange, msg)) }
+// Problem explains why a guess was not counted, or what went wrong. Long
+// messages (a list of categories) wrap to the width.
+func (u *UI) Problem(msg string) { u.printf("  %s\n", u.paint(orange, u.wrap(msg, 2))) }
 
 // Prompt asks for the next guess.
 func (u *UI) Prompt(try int) {

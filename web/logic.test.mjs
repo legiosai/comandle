@@ -6,12 +6,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   ABSENT as a,
+  CATEGORIES,
   CORRECT as c,
+  LEVELS,
   PRESENT as p,
   cluesVisible,
   daily,
   dayNumber,
   nextDayMs,
+  pickPractice,
+  practiceFilter,
+  practicePool,
   recordStats,
   score,
   shareText,
@@ -81,4 +86,39 @@ test("stats bookkeeping matches the terminal", () => {
   assert.equal(s.streak, 1, "a skipped day resets the streak");
   s = recordStats(s, 5, false, 6);
   assert.deepEqual([s.streak, s.played, s.wins, s.maxStreak], [0, 4, 3, 2]);
+});
+
+test("practice categories and levels are the Go engine's, in its order", () => {
+  const book = readFileSync(new URL("../internal/game/book.go", import.meta.url), "utf8");
+  const list = (name) => JSON.parse(`[${book.match(new RegExp(`${name}\\s*=\\s*\\[\\]string\\{([^}]*)\\}`))[1]}]`);
+  assert.deepEqual(CATEGORIES, list("Categories"));
+  assert.deepEqual(LEVELS, list("Levels"));
+  for (const cmd of commands) {
+    assert.ok(CATEGORIES.includes(cmd.category) && LEVELS.includes(cmd.level), cmd.id);
+  }
+});
+
+test("a saved practice filter keeps only known values", () => {
+  assert.deepEqual(practiceFilter({ category: "redes", level: "básico" }), { category: "redes", level: "básico" });
+  assert.deepEqual(practiceFilter({ category: "red", level: "basico" }), { category: "", level: "" });
+  assert.deepEqual(practiceFilter(null), { category: "", level: "" });
+  assert.deepEqual(practiceFilter("redes"), { category: "", level: "" });
+});
+
+test("the practice pool filters by category and level", () => {
+  assert.equal(practicePool(commands).length, commands.length);
+  assert.equal(practicePool(commands, { category: "", level: "" }).length, commands.length);
+  const redes = practicePool(commands, { category: "redes" });
+  assert.ok(redes.length > 0 && redes.every((c) => c.category === "redes"));
+  const basic = practicePool(commands, { category: "redes", level: "básico" });
+  assert.ok(basic.length > 0 && basic.every((c) => c.category === "redes" && c.level === "básico"));
+  assert.deepEqual(practicePool(commands, { category: "nada" }), []);
+});
+
+test("the next practice avoids the command just played while there is another", () => {
+  const pool = [{ id: "nmap" }, { id: "ping" }];
+  for (const r of [0, 0.5, 0.99]) assert.equal(pickPractice(pool, "nmap", () => r).id, "ping");
+  assert.equal(pickPractice([{ id: "nmap" }], "nmap", () => 0.5).id, "nmap");
+  assert.equal(pickPractice(pool, undefined, () => 0.99).id, "ping");
+  assert.equal(pickPractice(pool, undefined, () => 0).id, "nmap");
 });

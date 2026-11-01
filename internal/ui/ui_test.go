@@ -55,3 +55,25 @@ func TestWidthForNonTerminal(t *testing.T) {
 		t.Fatalf("widthFor(buffer) = %d, want %d", w, maxWidth)
 	}
 }
+
+// A long problem (the list of categories after a typo) wraps between words.
+func TestProblemWraps(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	var buf bytes.Buffer
+	u := New(&buf)
+	u.width = minWidth
+	msg := "«red» no es una categoría. Elegí una: " + strings.Join(game.Categories, ", ") + "."
+	u.Problem(msg)
+	lines := strings.Split(strings.TrimRight(buf.String(), "\n"), "\n")
+	if len(lines) < 2 {
+		t.Fatalf("expected the message to wrap at %d columns:\n%s", u.width, buf.String())
+	}
+	for _, line := range lines {
+		if n := utf8.RuneCountInString(line); n > u.width {
+			t.Errorf("line has %d columns, more than %d:\n%s", n, u.width, line)
+		}
+	}
+	if got := strings.Join(strings.Fields(buf.String()), " "); got != msg {
+		t.Errorf("wrapping changed the words:\n%s", got)
+	}
+}

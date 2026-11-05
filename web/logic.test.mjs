@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   ABSENT as a,
+  BOOK_URL,
   CATEGORIES,
   CORRECT as c,
   LEVELS,
@@ -121,4 +122,18 @@ test("the next practice avoids the command just played while there is another", 
   assert.equal(pickPractice([{ id: "nmap" }], "nmap", () => 0.5).id, "nmap");
   assert.equal(pickPractice(pool, undefined, () => 0.99).id, "ping");
   assert.equal(pickPractice(pool, undefined, () => 0).id, "nmap");
+});
+
+test("a card points to a chapter the book has, on the book's page for comandle", () => {
+  assert.equal(BOOK_URL, "https://valentorassa.com/libro?ref=comandle");
+  const titles = new Map();
+  const inBook = commands.filter((cmd) => cmd.book);
+  assert.ok(inBook.length > 0);
+  for (const { id, book } of inBook) {
+    assert.ok(Number.isInteger(book.chapter) && book.chapter >= 1 && book.chapter <= 12, `${id}: chapter ${book.chapter}`);
+    assert.ok(typeof book.title === "string" && book.title.length > 0, `${id}: no title`);
+    // internal/game checks each title against the book; here, that a chapter has one.
+    assert.equal(titles.get(book.chapter) ?? book.title, book.title, `${id}: chapter ${book.chapter} has two titles`);
+    titles.set(book.chapter, book.title);
+  }
 });

@@ -253,6 +253,11 @@ func (u *UI) Card(c *game.Command) {
 	if c.Lab != "" {
 		u.printf("  %s %s\n", u.bold(purple, "Practicalo:"), u.paint(cyan, c.Lab))
 	}
+	if ch := c.InBook; ch != nil {
+		text := fmt.Sprintf("%s aparece en el capítulo %d de «%s».", c.ID, ch.Number, game.BookTitle)
+		u.printf("  %s %s\n", u.bold(purple, "Libro:"), u.wrapAfter(text, 9, 9))
+		u.printf("         %s\n", u.paint(cyan, game.BookURL))
+	}
 	u.printf("  %s\n", line)
 }
 

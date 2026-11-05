@@ -28,6 +28,36 @@ var (
 
 var idPattern = regexp.MustCompile(`^[a-z0-9-]+$`)
 
+// BookTitle is the book a card can point to, and BookURL its page: the ref
+// tells the page's counters that the visit came from comandle.
+const (
+	BookTitle = "No podés defender lo que no entendés"
+	BookURL   = "https://valentorassa.com/libro?ref=comandle"
+)
+
+// BookChapters are the book's chapter titles, chapter 1 first. A command's
+// book entry must name its chapter with the same title.
+var BookChapters = []string{
+	"Toda abstracción filtra",
+	"Del comando al kernel",
+	"Programa, proceso, thread",
+	"Quién actúa, y con qué permiso",
+	"Todo es un archivo",
+	"Arranque, servicios y logs",
+	"Una request no es magia",
+	"Un contenedor no es una VM",
+	"La nube es la computadora de otro",
+	"Agentes: el mismo problema con otra cara",
+	"Debian, o el permiso para mirar",
+	"La experiencia se demuestra",
+}
+
+// Chapter is the chapter of the book where a command is used.
+type Chapter struct {
+	Number int    `json:"chapter"`
+	Title  string `json:"title"`
+}
+
 // Example is one way to run a command, with what it does.
 type Example struct {
 	Cmd  string `json:"cmd"`
@@ -46,6 +76,7 @@ type Command struct {
 	Examples    []Example `json:"examples"`
 	Security    string    `json:"security"`
 	Lab         string    `json:"lab,omitempty"`
+	InBook      *Chapter  `json:"book,omitempty"`
 }
 
 // Book is the whole game data: the answers in calendar order and the words a
@@ -114,6 +145,14 @@ func Load(commandsJSON, allowedTxt []byte) (*Book, error) {
 		}
 		if c.Lab != "" && !strings.HasPrefix(c.Lab, "https://") {
 			problems = append(problems, where+": lab must be an https URL")
+		}
+		if ch := c.InBook; ch != nil {
+			switch {
+			case ch.Number < 1 || ch.Number > len(BookChapters):
+				problems = append(problems, fmt.Sprintf("%s: the book has chapters 1 to %d", where, len(BookChapters)))
+			case ch.Title != BookChapters[ch.Number-1]:
+				problems = append(problems, fmt.Sprintf("%s: chapter %d of the book is %q", where, ch.Number, BookChapters[ch.Number-1]))
+			}
 		}
 		b.allowed[c.ID] = true
 	}

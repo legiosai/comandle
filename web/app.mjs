@@ -4,6 +4,8 @@
 // the round; its words also go to a live region for screen readers.
 import {
   ABSENT,
+  BOOK_TITLE,
+  BOOK_URL,
   CATEGORIES,
   CORRECT,
   LEVELS,
@@ -1148,6 +1150,15 @@ function buildMan(c, n) {
     a.rel = "noopener";
     a.append(icon(ICON_LINK, "0 0 16 16"));
     box.append(a);
+  }
+  if (c.book) {
+    const a = el("a");
+    a.href = BOOK_URL;
+    a.rel = "noopener";
+    a.append(el("cite", null, BOOK_TITLE));
+    const p = el("p", "book");
+    p.append(el("code", null, c.id), ` aparece en el capítulo ${c.book.chapter} de `, a, ".");
+    box.append(p);
   }
   return box;
 }

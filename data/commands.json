@@ -25,7 +25,11 @@
       }
     ],
     "security": "Sirve para auditar, por ejemplo buscando contraseñas en texto plano o IPs sospechosas en un log, pero que grep no encuentre nada solo prueba que nada coincide con tu patrón, no que no haya secretos.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/encontrar-archivos-y-texto/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/encontrar-archivos-y-texto/",
+    "book": {
+      "chapter": 8,
+      "title": "Un contenedor no es una VM"
+    }
   },
   {
     "id": "chmod",
@@ -53,7 +57,11 @@
       }
     ],
     "security": "chmod 777 no arregla un problema de permisos: deja el archivo escribible por cualquier usuario o proceso del equipo, así que buscá el permiso mínimo que de verdad necesita.",
-    "lab": "https://securitylabs.valentorassa.com/labs/ciberseguridad/por-que-chmod-777/"
+    "lab": "https://securitylabs.valentorassa.com/labs/ciberseguridad/por-que-chmod-777/",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "ping",
@@ -80,7 +88,11 @@
         "desc": "Prueba la conectividad por IPv6."
       }
     ],
-    "security": "Que un host no responda al ping no significa que esté apagado ni que no tenga servicios expuestos, porque muchos firewalls bloquean ICMP y dejan pasar el resto."
+    "security": "Que un host no responda al ping no significa que esté apagado ni que no tenga servicios expuestos, porque muchos firewalls bloquean ICMP y dejan pasar el resto.",
+    "book": {
+      "chapter": 7,
+      "title": "Una request no es magia"
+    }
   },
   {
     "id": "find",
@@ -108,7 +120,11 @@
       }
     ],
     "security": "Con find / -perm -4000 -type f 2>/dev/null listás los binarios SUID, un chequeo clásico de auditoría porque un SUID que no debería estar ahí puede servir para escalar privilegios.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/find-a-fondo/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/find-a-fondo/",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "kill",
@@ -135,7 +151,11 @@
         "desc": "Último recurso: corta el proceso sin dejarlo cerrar en orden."
       }
     ],
-    "security": "Usá kill -9 solo como último recurso, porque un proceso cortado sin limpiar puede dejar archivos de lock, temporales con datos sensibles o transacciones a medias."
+    "security": "Usá kill -9 solo como último recurso, porque un proceso cortado sin limpiar puede dejar archivos de lock, temporales con datos sensibles o transacciones a medias.",
+    "book": {
+      "chapter": 3,
+      "title": "Programa, proceso, thread"
+    }
   },
   {
     "id": "whoami",
@@ -163,7 +183,11 @@
       }
     ],
     "security": "Es de lo primero que ejecuta alguien que entra a un sistema para saber qué privilegios tiene, así que verlo en los logs ejecutado por el usuario de un servicio web es una señal de alerta.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/permisos-usuarios-procesos/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/permisos-usuarios-procesos/",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "docker",
@@ -191,7 +215,11 @@
       }
     ],
     "security": "Pertenecer al grupo docker o montar /var/run/docker.sock dentro de un contenedor equivale a tener root en el host, así que tratalo como un acceso privilegiado.",
-    "lab": "https://securitylabs.valentorassa.com/labs/devsecops-agentes/docker-image-hardening/"
+    "lab": "https://securitylabs.valentorassa.com/labs/devsecops-agentes/docker-image-hardening/",
+    "book": {
+      "chapter": 8,
+      "title": "Un contenedor no es una VM"
+    }
   },
   {
     "id": "tail",
@@ -218,7 +246,11 @@
         "desc": "Muestra todo desde la línea 2, por ejemplo para saltear el encabezado de un CSV."
       }
     ],
-    "security": "Cualquiera con permiso de escritura sobre un log puede editar lo que ves con tail, por eso los logs importantes conviene enviarlos también a otro equipo."
+    "security": "Cualquiera con permiso de escritura sobre un log puede editar lo que ves con tail, por eso los logs importantes conviene enviarlos también a otro equipo.",
+    "book": {
+      "chapter": 10,
+      "title": "Agentes: el mismo problema con otra cara"
+    }
   },
   {
     "id": "curl",
@@ -246,7 +278,11 @@
       }
     ],
     "security": "Evitá correr curl URL | sh con scripts que no leíste, porque ejecutás lo que el servidor decida mandarte en ese momento.",
-    "lab": "https://securitylabs.valentorassa.com/labs/redes-internet/una-request-no-es-magia/"
+    "lab": "https://securitylabs.valentorassa.com/labs/redes-internet/una-request-no-es-magia/",
+    "book": {
+      "chapter": 7,
+      "title": "Una request no es magia"
+    }
   },
   {
     "id": "sudo",
@@ -273,7 +309,11 @@
         "desc": "Olvida la contraseña recordada; la próxima vez te la vuelve a pedir."
       }
     ],
-    "security": "Una regla de sudoers que permite como root un editor, un intérprete o find equivale a dar root completo, porque desde esos programas se puede abrir una shell."
+    "security": "Una regla de sudoers que permite como root un editor, un intérprete o find equivale a dar root completo, porque desde esos programas se puede abrir una shell.",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "apt-get",
@@ -300,7 +340,11 @@
         "desc": "Simula la instalación y muestra qué agregaría, sin instalar nada."
       }
     ],
-    "security": "Instalá solo desde repositorios firmados que conozcas, porque agregar un repositorio de terceros le da a quien lo controla la posibilidad de instalar código que corre como root."
+    "security": "Instalá solo desde repositorios firmados que conozcas, porque agregar un repositorio de terceros le da a quien lo controla la posibilidad de instalar código que corre como root.",
+    "book": {
+      "chapter": 11,
+      "title": "Debian, o el permiso para mirar"
+    }
   },
   {
     "id": "nmap",
@@ -435,7 +479,11 @@
         "desc": "Cambia solo el grupo y deja el dueño como estaba."
       }
     ],
-    "security": "Darle al usuario del servidor web la propiedad de todo el código, y no solo de la carpeta en la que necesita escribir, permite que una vulnerabilidad en la aplicación termine modificando sus propios archivos."
+    "security": "Darle al usuario del servidor web la propiedad de todo el código, y no solo de la carpeta en la que necesita escribir, permite que una vulnerabilidad en la aplicación termine modificando sus propios archivos.",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "sort",
@@ -489,7 +537,11 @@
         "desc": "Muestra la arquitectura del equipo."
       }
     ],
-    "security": "Después de actualizar el kernel, compará uname -r con la versión instalada: hasta que reinicies seguís corriendo el kernel viejo, con sus vulnerabilidades."
+    "security": "Después de actualizar el kernel, compará uname -r con la versión instalada: hasta que reinicies seguís corriendo el kernel viejo, con sus vulnerabilidades.",
+    "book": {
+      "chapter": 8,
+      "title": "Un contenedor no es una VM"
+    }
   },
   {
     "id": "base64",
@@ -572,7 +624,11 @@
       }
     ],
     "security": "Una traza puede incluir contraseñas y tokens en texto plano dentro de las llamadas read y write, así que tratala como un dato sensible y no la compartas sin revisarla.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/del-comando-al-kernel/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/del-comando-al-kernel/",
+    "book": {
+      "chapter": 2,
+      "title": "Del comando al kernel"
+    }
   },
   {
     "id": "gitleaks",
@@ -600,7 +656,11 @@
       }
     ],
     "security": "Si aparece un secreto real en el historial, lo primero es rotarlo, porque reescribir la historia no sirve si alguien ya clonó el repo o si la clave quedó en un fork.",
-    "lab": "https://securitylabs.valentorassa.com/labs/devsecops-agentes/secret-scanning-token-al-repo/"
+    "lab": "https://securitylabs.valentorassa.com/labs/devsecops-agentes/secret-scanning-token-al-repo/",
+    "book": {
+      "chapter": 5,
+      "title": "Todo es un archivo"
+    }
   },
   {
     "id": "wget",
@@ -654,7 +714,11 @@
         "desc": "Muestra el estado de la cuenta: si la contraseña está bloqueada y cuándo cambió por última vez."
       }
     ],
-    "security": "passwd -l solo bloquea el login con contraseña, así que una cuenta con una clave SSH autorizada todavía puede entrar: para dar de baja a alguien revisá también sus authorized_keys o expirá la cuenta."
+    "security": "passwd -l solo bloquea el login con contraseña, así que una cuenta con una clave SSH autorizada todavía puede entrar: para dar de baja a alguien revisá también sus authorized_keys o expirá la cuenta.",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "less",
@@ -736,7 +800,11 @@
       }
     ],
     "security": "En modo rootless, escapar del contenedor te deja con los permisos de tu usuario y no con root del host, lo que reduce mucho el daño de una vulnerabilidad.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/contenedores-sin-magia/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/contenedores-sin-magia/",
+    "book": {
+      "chapter": 11,
+      "title": "Debian, o el permiso para mirar"
+    }
   },
   {
     "id": "openssl",
@@ -764,7 +832,11 @@
       }
     ],
     "security": "Una clave privada generada con openssl tiene que quedar con permisos 600 y fuera de cualquier repositorio, porque quien la tenga puede hacerse pasar por tu servidor.",
-    "lab": "https://securitylabs.valentorassa.com/labs/redes-internet/tls-sin-magia/"
+    "lab": "https://securitylabs.valentorassa.com/labs/redes-internet/tls-sin-magia/",
+    "book": {
+      "chapter": 7,
+      "title": "Una request no es magia"
+    }
   },
   {
     "id": "diff",
@@ -820,7 +892,11 @@
       }
     ],
     "security": "La fecha de modificación se puede falsificar con touch, pero la de cambio (ctime) se actualiza sola con cualquier cambio de metadatos, así que en un análisis forense conviene compararlas.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/permisos-en-octal/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/permisos-en-octal/",
+    "book": {
+      "chapter": 5,
+      "title": "Todo es un archivo"
+    }
   },
   {
     "id": "tcpdump",
@@ -847,7 +923,11 @@
         "desc": "Guarda 1000 paquetes en un archivo para abrirlo en Wireshark."
       }
     ],
-    "security": "Capturá solo en redes y equipos que administrás o con autorización, porque una captura puede contener contraseñas, cookies y datos personales de terceros, y tenés que guardarla y borrarla con el mismo cuidado."
+    "security": "Capturá solo en redes y equipos que administrás o con autorización, porque una captura puede contener contraseñas, cookies y datos personales de terceros, y tenés que guardarla y borrarla con el mismo cuidado.",
+    "book": {
+      "chapter": 11,
+      "title": "Debian, o el permiso para mirar"
+    }
   },
   {
     "id": "getfacl",
@@ -929,7 +1009,11 @@
       }
     ],
     "security": "Instalar un .deb con dpkg -i corre sus scripts de instalación como root, así que no instales paquetes sueltos de fuentes que no conocés sin revisarlos antes.",
-    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/anatomia-de-un-deb/"
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/anatomia-de-un-deb/",
+    "book": {
+      "chapter": 11,
+      "title": "Debian, o el permiso para mirar"
+    }
   },
   {
     "id": "md5sum",
@@ -1010,7 +1094,11 @@
         "desc": "Recarga todos los archivos de configuración, como los de /etc/sysctl.d/."
       }
     ],
-    "security": "Varias defensas del kernel se controlan con sysctl, como kernel.randomize_va_space=2 para ASLR completo o kernel.kptr_restrict, y un servidor que no necesita rutear debería tener net.ipv4.ip_forward=0."
+    "security": "Varias defensas del kernel se controlan con sysctl, como kernel.randomize_va_space=2 para ASLR completo o kernel.kptr_restrict, y un servidor que no necesita rutear debería tener net.ipv4.ip_forward=0.",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "pkill",
@@ -1525,7 +1613,11 @@
         "desc": "Busca el proceso cuya línea de comandos completa coincide con el patrón."
       }
     ],
-    "security": "El patrón es una coincidencia parcial, así que pgrep ssh también trae tu propio cliente; usá -x para el nombre exacto y -a para verificar antes de pasarle esos PID a kill o pkill y cortar un servicio que no era."
+    "security": "El patrón es una coincidencia parcial, así que pgrep ssh también trae tu propio cliente; usá -x para el nombre exacto y -a para verificar antes de pasarle esos PID a kill o pkill y cortar un servicio que no era.",
+    "book": {
+      "chapter": 8,
+      "title": "Un contenedor no es una VM"
+    }
   },
   {
     "id": "visudo",
@@ -1606,7 +1698,11 @@
         "desc": "En un script, guarda la ruta en una variable y borra el archivo cuando el script termina."
       }
     ],
-    "security": "Un nombre fijo como /tmp/backup.tmp, o armado con el PID, deja que otro usuario cree antes un enlace simbólico con ese nombre, y si tu script corre como root termina escribiendo sobre el archivo que eligió el atacante: mktemp usa un nombre impredecible y nunca reutiliza uno que ya existe."
+    "security": "Un nombre fijo como /tmp/backup.tmp, o armado con el PID, deja que otro usuario cree antes un enlace simbólico con ese nombre, y si tu script corre como root termina escribiendo sobre el archivo que eligió el atacante: mktemp usa un nombre impredecible y nunca reutiliza uno que ya existe.",
+    "book": {
+      "chapter": 12,
+      "title": "La experiencia se demuestra"
+    }
   },
   {
     "id": "lazygit",
@@ -1633,7 +1729,11 @@
         "desc": "Muestra solo los commits que tocaron ese archivo."
       }
     ],
-    "security": "Revisar el diff de cada archivo antes de stagearlo te ayuda a no commitear un .env o una clave por accidente, pero lazygit no busca secretos por vos: sumá un hook de pre-commit con gitleaks para eso."
+    "security": "Revisar el diff de cada archivo antes de stagearlo te ayuda a no commitear un .env o una clave por accidente, pero lazygit no busca secretos por vos: sumá un hook de pre-commit con gitleaks para eso.",
+    "book": {
+      "chapter": 11,
+      "title": "Debian, o el permiso para mirar"
+    }
   },
   {
     "id": "dmesg",
@@ -2119,7 +2219,11 @@
         "desc": "Cambia la máscara solo dentro del subshell: el archivo queda en 640 y tu sesión no se modifica."
       }
     ],
-    "security": "Una máscara demasiado permisiva, como 000, deja los archivos nuevos legibles y modificables por cualquier usuario, así que en cuentas que manejan claves o datos sensibles fijá 027 o 077 en el perfil del shell."
+    "security": "Una máscara demasiado permisiva, como 000, deja los archivos nuevos legibles y modificables por cualquier usuario, así que en cuentas que manejan claves o datos sensibles fijá 027 o 077 en el perfil del shell.",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
   },
   {
     "id": "grype",

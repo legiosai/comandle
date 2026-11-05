@@ -610,6 +610,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
   font: 500 13px/1.4 var(--mono);
 }
 .lab svg { width: 14px; height: 14px; }
+.book { margin: 18px 0 0; font-size: 14px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
+.lab + .book { margin-top: 10px; }
+.book code { font: 450 13px/1 var(--mono); color: var(--fg); }
 
 /* ------------------------------------------------------------- footer */
 

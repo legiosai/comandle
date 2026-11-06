@@ -36,22 +36,23 @@ comandle #1 4/6
 
 ![La web: tablero, teclado y vt, el pingüino, citando a Ken Thompson](docs/web.png)
 
-Un personaje ASCII comenta la ronda como lo haría `cowsay`: cambia los ojos
-cuando vas mal, festeja con `exit 0` y muere con un `segmentation fault`. Si lo
-tocás, corre `fortune`. Por defecto es vt, el pingüino; desde el selector podés
-cambiarlo por la vaca, un conejo, un gato, un búho, un cangrejo o un fantasma, y
-la web recuerda tu elección.
+vt, el pingüino, comenta la ronda como lo haría `cowsay`: cambia los ojos cuando
+vas mal, festeja con `exit 0` y muere con un `segmentation fault`. En el celular
+te dice las pistas en su globo; en la computadora van en una lista al costado.
+Si lo tocás, corre `fortune` (o, en el celular, te repite las pistas).
 
-Cuando termina la ronda, «practicar» juega otra con un comando al azar, que no
-suma a tus estadísticas ni al ranking. Debajo elegís categoría y nivel (por
-ejemplo, redes y básico) y ves cuántos comandos quedan; la web recuerda la
-elección.
+Cuando termina la ronda, la ficha del comando ocupa el centro. «Practicar otro»
+juega una ronda con un comando al azar, que no suma a tus estadísticas ni al
+ranking; arriba elegís categoría y nivel (por ejemplo, redes y básico) y la web
+recuerda la elección. El reloj de arriba abre los comandos anteriores, cada uno
+con su ficha.
 
-Debajo del título se ven las partidas terminadas hoy, ayer y desde el lanzamiento
-público (28/10/2026). Tocá ese contador para abrir el ranking: agrupa los resultados
-por intentos, comparte puesto entre empates y resalta tu resultado guardado en
-este navegador. Podés alternar hoy y ayer. Solo suma partidas diarias de la web;
-la práctica y la terminal no participan. No hace falta elegir nombre ni crear cuenta.
+Las estadísticas tienen dos pestañas: tus partidas y el ranking de la comunidad,
+con las partidas terminadas hoy, ayer y desde el lanzamiento público (28/10/2026).
+El ranking agrupa los resultados por intentos, comparte puesto entre empates y
+resalta tu resultado guardado en este navegador. Solo suma partidas diarias de la
+web; la práctica, las salas y la terminal no participan. No hace falta elegir
+nombre ni crear cuenta. El sonido de teclas se prende en «Cómo se juega».
 
 Para previsualizar la web localmente: `node scripts/preview.mjs` y abrí
 `http://127.0.0.1:4173`. El contador necesita el endpoint público de Pluma;

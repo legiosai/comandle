@@ -8,7 +8,7 @@ import { dirname, extname, resolve, sep } from "node:path";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.COMANDLE_PREVIEW_PORT || 4173);
 const api = process.env.COMANDLE_API_URL || "https://vtsecurity.com.ar/api/comandle";
-const types = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2", ".png": "image/png" };
+const types = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2", ".png": "image/png", ".jpg": "image/jpeg" };
 
 createServer(async (request, response) => {
   response.setHeader("Cache-Control", "no-store");

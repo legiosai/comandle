@@ -1,6 +1,6 @@
 // Modo clase: a presenter opens a room on the projector, the audience plays
 // the same command with ?sala=CODE on their phones, and the presenter's screen
-// shows how it goes. These helpers are pure and shared by the game (app.mjs)
+// shows how it goes. These helpers are pure and shared by the game (game.mjs)
 // and the presenter page (presentador.mjs); sala.test.mjs pins them.
 //
 // A room code is 4 characters that carry the command's index in

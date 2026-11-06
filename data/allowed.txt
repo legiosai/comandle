@@ -201,6 +201,7 @@ ghidra
 git-lfs
 gitk
 gitleaks
+gitsign
 gitui
 glab
 glances

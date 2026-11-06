@@ -2359,6 +2359,7 @@
       }
     ],
     "security": "Capabilities como cap_setuid, cap_dac_read_search o cap_sys_admin en un intérprete o en un binario que un usuario puede reemplazar valen lo mismo que root, así que compará el resultado de getcap -r / con una lista de referencia y desconfiá de cualquiera fuera de /usr.",
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/tu-root-no-es-root/",
     "book": {
       "chapter": 4,
       "title": "Quién actúa, y con qué permiso"
@@ -2884,6 +2885,7 @@
       }
     ],
     "security": "Que un usuario común pueda crear user namespaces expone más partes del kernel, y varias vulnerabilidades de escalada solo se podían explotar desde uno: Ubuntu lo limita con AppArmor, y en un servidor que no corre contenedores sin root ni navegadores podés apagarlo con sysctl user.max_user_namespaces=0.",
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/tu-root-no-es-root/",
     "book": {
       "chapter": 8,
       "title": "Un contenedor no es una VM"

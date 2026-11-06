@@ -127,7 +127,9 @@ sala en el día, cuando empezás y cuando terminás (en cuántos intentos o sin
 resolver): el código de la sala es al azar y no identifica a nadie, y lo que se
 guarda es cuántos jugaron en esa sala, no quiénes. Si tu navegador tiene
 activado Global Privacy Control, no manda eventos. Consultar el ranking o la
-pantalla de una sala solo lee los contadores públicos.
+pantalla de una sala solo lee los contadores públicos. Si la ficha nombra un
+capítulo del libro, su link lleva `?ref=comandle` para que esa página sepa que
+llegaste desde acá, y nada más.
 
 En la terminal, tus estadísticas quedan en un archivo que
 solo puede leer tu usuario: `$XDG_STATE_HOME/comandle/stats.json` si definiste

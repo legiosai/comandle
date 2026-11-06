@@ -29,7 +29,8 @@ segunda el #2, y así. Por eso:
     { "cmd": "...", "desc": "..." }
   ],
   "security": "Una oración sobre el riesgo, el mal uso a evitar o el uso defensivo.",
-  "lab": "https://securitylabs.valentorassa.com/labs/<ruta>/<lab>/"
+  "lab": "https://securitylabs.valentorassa.com/labs/<ruta>/<lab>/",
+  "book": { "chapter": 4, "title": "Quién actúa, y con qué permiso" }
 }
 ```
 
@@ -49,6 +50,11 @@ segunda el #2, y así. Por eso:
   con autorización.
 - `lab` es opcional: solo si un lab de
   [Open Security Labs](https://securitylabs.valentorassa.com) enseña ese comando.
+- `book` es opcional: solo si el libro *No podés defender lo que no entendés*
+  usa ese comando en un listado o lo explica en el texto. `chapter` es el
+  capítulo donde más se usa (del 1 al 12) y `title`, su título tal como figura
+  en el libro; `go test` lo compara con la lista de capítulos. La ficha suma una
+  línea con el capítulo y el link al libro.
 - Español rioplatense, claro y directo.
 - Agregá el `id` a [`data/allowed.txt`](data/allowed.txt) (orden alfabético).
   También podés sumar ahí nombres de comandos reales para que sean intentos

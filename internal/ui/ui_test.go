@@ -37,15 +37,41 @@ func checkFits(t *testing.T, c *game.Command, width int) {
 		}
 		u.Card(c)
 		for _, line := range strings.Split(buf.String(), "\n") {
-			// Commands, lab URLs and the rule are printed whole on purpose.
+			// Commands, URLs and the rule are printed whole on purpose.
 			trimmed := strings.TrimSpace(line)
-			if strings.HasPrefix(trimmed, "$ ") || strings.HasPrefix(trimmed, "Practicalo:") || strings.HasPrefix(trimmed, "─") {
+			if strings.HasPrefix(trimmed, "$ ") || strings.HasPrefix(trimmed, "Practicalo:") || strings.HasPrefix(trimmed, "https://") || strings.HasPrefix(trimmed, "─") {
 				continue
 			}
 			if n := utf8.RuneCountInString(line); n > u.width {
 				t.Errorf("%s: line has %d columns, more than %d:\n%s", c.ID, n, u.width, line)
 			}
 		}
+	}
+}
+
+// A command the book uses gets one line with its chapter and the book's page;
+// one the book does not use gets nothing.
+func TestCardPointsToTheBook(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	book, err := game.Load(data.Commands, data.Allowed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	card := func(id string) string {
+		c, ok := book.Get(id)
+		if !ok {
+			t.Fatalf("%s is not in the data", id)
+		}
+		var buf bytes.Buffer
+		New(&buf).Card(c)
+		return strings.Join(strings.Fields(buf.String()), " ")
+	}
+	want := "Libro: curl aparece en el capítulo 7 de «No podés defender lo que no entendés». https://valentorassa.com/libro?ref=comandle"
+	if got := card("curl"); !strings.Contains(got, want) {
+		t.Errorf("the curl card should say %q:\n%s", want, got)
+	}
+	if got := card("nmap"); strings.Contains(got, "Libro:") || strings.Contains(got, "valentorassa.com/libro") {
+		t.Errorf("nmap is not in the book, but its card points to it:\n%s", got)
 	}
 }
 

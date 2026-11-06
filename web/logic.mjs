@@ -163,3 +163,8 @@ export function pickPractice(pool, lastId, random = Math.random) {
   const rest = pool.length > 1 ? pool.filter((c) => c.id !== lastId) : pool;
   return rest[Math.floor(random() * rest.length)];
 }
+
+// The book a card can point to and its page, as BookTitle and BookURL in
+// internal/game: the ref tells the page's counters the visit came from here.
+export const BOOK_TITLE = "No podés defender lo que no entendés";
+export const BOOK_URL = "https://valentorassa.com/libro?ref=comandle";

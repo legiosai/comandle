@@ -13,7 +13,7 @@ const fixtureCommands = `[
   "clues":["Decide quién puede leer un archivo.","Acepta modos en octal.","Viene de change mode."],
   "summary":"Cambia permisos.","explanation":"Explicación.",
   "examples":[{"cmd":"a","desc":"a"},{"cmd":"b","desc":"b"},{"cmd":"c","desc":"c"}],
-  "security":"Nota."},
+  "security":"Nota.","book":{"chapter":4,"title":"Quién actúa, y con qué permiso"}},
  {"id":"grep","category":"texto","level":"básico",
   "clues":["Busca texto.","Usa expresiones regulares.","Global regular expression print."],
   "summary":"Busca patrones.","explanation":"Explicación.",
@@ -188,6 +188,35 @@ func TestLoadRejectsBadData(t *testing.T) {
 	for _, want := range []string{"4 to 8", "unknown category", "3 clues", "gives the answer away", "3 examples", "required"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error should mention %q:\n%v", want, err)
+		}
+	}
+}
+
+// A card points to the book only with a chapter it has, named with its real
+// title, and always to the same page, tagged as coming from comandle.
+func TestBookChapters(t *testing.T) {
+	if BookURL != "https://valentorassa.com/libro?ref=comandle" {
+		t.Errorf("BookURL = %q", BookURL)
+	}
+	if len(BookChapters) != 12 {
+		t.Errorf("the book has 12 chapters, BookChapters has %d", len(BookChapters))
+	}
+	b := book(t)
+	if c, _ := b.Get("chmod"); c.InBook == nil || c.InBook.Number != 4 {
+		t.Errorf("chmod should be in chapter 4: %+v", c.InBook)
+	}
+	if c, _ := b.Get("grep"); c.InBook != nil {
+		t.Errorf("grep has no book entry in the fixture: %+v", c.InBook)
+	}
+	for _, tc := range []struct{ book, want string }{
+		{`{"chapter":0,"title":"Prefacio"}`, "chapters 1 to 12"},
+		{`{"chapter":13,"title":"Epílogo"}`, "chapters 1 to 12"},
+		{`{"chapter":7,"title":"Un contenedor no es una VM"}`, `chapter 7 of the book is "Una request no es magia"`},
+	} {
+		data := strings.Replace(fixtureCommands, `"chapter":4,"title":"Quién actúa, y con qué permiso"`, strings.Trim(tc.book, "{}"), 1)
+		_, err := Load([]byte(data), []byte(fixtureAllowed))
+		if err == nil || !strings.Contains(err.Error(), tc.want) {
+			t.Errorf("book %s: error should mention %q, got %v", tc.book, tc.want, err)
 		}
 	}
 }

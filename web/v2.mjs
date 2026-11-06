@@ -95,16 +95,20 @@ function renderMeta() {
   $("meta").innerHTML = parts + mode;
   $("back-daily")?.addEventListener("click", loadDailyAndRender);
 }
+// Desktop lists the clues beside the board; on phones vt says them (see clueLine).
 function renderClues(animate) {
-  const n = cluesVisible(S.guesses, S.answer.id), ol = $("clues"), have = ol.children.length;
-  if (n < have) ol.innerHTML = "";
-  for (let i = ol.children.length; i < n; i++) {
-    const li = document.createElement("li");
-    li.innerHTML = `<span>pista ${i + 1}/3</span><p>${esc(S.answer.clues[i])}</p>`;
-    if (animate) li.className = "new";
-    ol.append(li);
-  }
-  $("app").style.setProperty("--clues", n ? `${n * 52 + 12}px` : "0px");
+  const n = cluesVisible(S.guesses, S.answer.id), box = $("clues");
+  const had = box.querySelectorAll("li").length;
+  if (!n) { box.innerHTML = ""; return; }
+  box.innerHTML = "<ol>" + S.answer.clues.slice(0, n).map((c, i) => `<li${animate && n > had && i === n - 1 ? ' class="new"' : ""}><span>pista ${i + 1}/3</span><p>${esc(c)}</p></li>`).join("") + "</ol>";
+}
+const shownClues = () => cluesVisible(S.guesses, S.answer.id);
+// phones have no room for a clue box: the newest clue is vt's resting line
+const clueInBubble = () => !desktop();
+function clueLine(i, md) {
+  const tone = md === "normal" ? "" : "warn";
+  const last = misses() >= 5 && i === 2 ? "último intento. " : "";
+  return { text: `${last}pista ${i + 1}/3: ${S.answer.clues[i]}`, mood: md, tone };
 }
 /* ---- vt, the penguin: comments on the round like cowsay, as in comandle today ---- */
 const EYE = { normal: "o", paranoid: "@", tired: "-", wired: "^", dead: "x", blink: "-" };
@@ -127,7 +131,7 @@ const len32 = (s) => Array.from(s).length;
 const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 // the whole penguin on tall screens and once the round is over; just its face otherwise
 const desktop = () => matchMedia("(min-width: 960px) and (min-height: 600px)").matches;
-const fullArt = () => desktop() || S.done || innerHeight >= 860;
+const fullArt = () => desktop() || S.done || innerHeight >= 780;
 
 function wrapText(text, cols) {
   if (text.includes("\n")) return text.split("\n").flatMap((part) => wrapText(part, cols));
@@ -211,17 +215,37 @@ function cowCols() {
     probe.style.position = "absolute"; probe.style.visibility = "hidden";
     art.append(probe); cow.charW = probe.getBoundingClientRect().width / 40 || 7; probe.remove();
   }
-  const room = Math.floor($("side").clientWidth / cow.charW) - 4 - (desktop() ? 0 : 14);
+  const room = Math.floor($("side").clientWidth / cow.charW) - 4 - (desktop() && !S.done ? 0 : 14);
   return Math.max(14, Math.min(34, room));
 }
 function drawCow() {
   const m = cow.view; if (!m) return;
   const mood = cow.blinking && (m.mood ?? "normal") === "normal" ? "blink" : m.mood;
-  const node = $("cow-art"), full = fullArt(), stacked = desktop();
+  // stacked (bubble over vt) beside the board on desktop; once the round ends it sits beside the bubble
+  const node = $("cow-art"), full = fullArt(), stacked = desktop() && !S.done;
   node.className = `cow-art ${stacked ? "stacked" : full ? "full" : "mini"}${m.think ? " think" : ""}${m.tone ? " " + m.tone : ""}`;
   paintRows(node, cowRows({ ...m, mood }, { shown: cow.shown, cols: cowCols(), mini: !full, stacked, pad: !S.done }));
 }
-function measureTalk() { $("app").style.setProperty("--talk", `${$("talk").offsetHeight}px`); }
+// The tile size that fills the room left for the board: the stage minus vt and the clues on
+// phones, the board's own cell on desktop. Re-run whenever any of them changes size.
+function fit() {
+  const b = $("board");
+  if (!S.answer) return;
+  if (S.done) { b.style.removeProperty("--t"); return; }
+  const n = S.answer.id.length, gap = 6, play = $("play");
+  let h;
+  if (desktop()) {
+    const cs = getComputedStyle(play);
+    h = play.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  } else {
+    const st = $("stage"), cs = getComputedStyle(st);
+    h = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - $("side").offsetHeight - (parseFloat(cs.rowGap) || 0);
+  }
+  const w = desktop() ? play.clientWidth : $("stage").clientWidth;
+  const max = desktop() ? 66 : innerWidth >= 600 ? 72 : 64;
+  const t = Math.floor(Math.min((w - (n - 1) * gap) / n, (h - 5 * gap) / 6, max));
+  b.style.setProperty("--t", `${Math.max(22, t)}px`);
+}
 function showLine(m, { type = true } = {}) {
   cow.view = m; clearInterval(cow.typer);
   const total = len32(m.text);
@@ -248,11 +272,13 @@ function misses() { return S.guesses.length - (S.guesses.at(-1) === S.answer.id 
 function mood() { if (S.done) return "normal"; const m = misses(); return m >= 5 ? "tired" : m >= 4 ? "paranoid" : "normal"; }
 function restingLine() {
   if (S.done) return endLine();
+  if (clueInBubble() && shownClues()) return clueLine(shownClues() - 1, mood());
   if (!S.guesses.length) return { text: S.mode === "practice" ? "práctica · no queda en el historial" : `${S.answer.id.length} letras · ${MAX_TRIES} intentos`, mood: mood() };
   return guessLine();
 }
 function guessLine() {
   const m = misses(), md = mood(), tone = md === "normal" ? "" : "warn";
+  if (clueInBubble() && shownClues()) return clueLine(shownClues() - 1, md);
   if (m >= 5) return { text: "último intento. no hay --dry-run", mood: md, tone };
   if (m === 2) return { text: "nueva pista", mood: md, tone };
   if (m === 4) return { text: "otra pista. respirá", mood: md, tone };
@@ -271,9 +297,18 @@ function reject(text) {
   shake();
   cow.revert = setTimeout(() => { cow.base = restingLine(); settleCow(); }, 2600);
 }
-// tapping the penguin: fortune | cowsay, Thompson first, then no repeats
+// tapping the penguin: fortune | cowsay, Thompson first, then no repeats. On phones, once
+// there are clues, it repeats them instead, going back from the newest.
 function poke() {
   clearTimeout(cow.revert);
+  const n = !S.done && clueInBubble() ? shownClues() : 0;
+  if (n > 1) {
+    cow.clue = ((cow.clue ?? n - 1) - 1 + n) % n;
+    const line = clueLine(cow.clue, mood());
+    showLine(line); announce(line.text);
+    cow.revert = setTimeout(() => { cow.clue = undefined; settleCow(); }, 8000);
+    return;
+  }
   const fits = fullArt() ? FORTUNES : FORTUNES.filter(([q]) => wrapText(q, cowCols()).length <= 2);
   const list = fits.length ? fits : FORTUNES;
   let i = cow.last < 0 ? 0 : Math.floor(Math.random() * list.length);
@@ -297,7 +332,6 @@ function scheduleBlink() {
 function renderTalk() {
   $("legend").hidden = S.done || S.guesses.length > 0 || store.get("seen", false);
   say(restingLine(), { speak: false, type: false });
-  measureTalk();
 }
 
 /* ---- assist ---- */
@@ -365,7 +399,7 @@ function submit() {
   if (invalid) return reject(cow.notFound > 1 ? `command not found · hay ${sameLength().length} que sí` : `bash: ${cur}: command not found`);
   S.guesses.push(S.current); S.current = ""; S.busy = true;
   showLine({ text: "...", think: true, mood: mood() });
-  if (store.get("seen", false) !== true) { store.set("seen", true); $("legend").hidden = true; measureTalk(); }
+  if (store.get("seen", false) !== true) { store.set("seen", true); $("legend").hidden = true; }
   if (S.mode === "daily") store.set("day:" + S.day, S.guesses);
  
   const r = S.guesses.length - 1;
@@ -396,8 +430,9 @@ function finish(won, quiet = false) {
   $("legend").hidden = true;
   say(endLine(), { speak: !quiet, type: !quiet });
   renderEnd(won, quiet);
- 
-  if (!quiet) setTimeout(() => $("end").querySelector(".verdict")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "nearest" }), 120);
+  fit();
+  // on phones the result is below the board; desktop already shows it beside the man page
+  if (!quiet && !desktop()) setTimeout(() => $("end").querySelector(".verdict")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "nearest" }), 160);
 }
 function countdown() {
   const ms = Math.max(0, nextDayMs(Date.now()) - Date.now()), s = Math.floor(ms / 1000);
@@ -407,10 +442,10 @@ function countdown() {
 function renderEnd(won, quiet) {
   const a = S.answer, tries = S.guesses.length, practice = S.mode === "practice";
   const head = won ? (tries === 1 ? "Al primer intento" : `Lo sacaste en ${tries}/6`) : `Era <code>${esc(a.id)}</code>`;
-  const catOpts = ['<option value="">cualquier categoría</option>', ...CATEGORIES.map((c) => `<option value="${c}"${S.filter.category === c ? " selected" : ""}>${c}</option>`)].join("");
-  const lvlOpts = ['<option value="">cualquier nivel</option>', ...LEVELS.map((l) => `<option value="${l}"${S.filter.level === l ? " selected" : ""}>${l}</option>`)].join("");
+  const catOpts = ['<option value="">todas</option>', ...CATEGORIES.map((c) => `<option value="${c}"${S.filter.category === c ? " selected" : ""}>${c}</option>`)].join("");
+  const lvlOpts = ['<option value="">todos</option>', ...LEVELS.map((l) => `<option value="${l}"${S.filter.level === l ? " selected" : ""}>${l}</option>`)].join("");
   const showNext = !practice || dailyDone();
-  const backBtn = practice && !dailyDone() ? `<button class="btn" type="button" id="go-daily">Jugar el #${S.day}</button>` : "";
+  const backBtn = practice && !dailyDone() ? `<button class="btn primary" type="button" id="go-daily">Jugar el comando del día (#${S.day})</button>` : "";
   const examples = a.examples.map((e, i) => `<li><div class="cmdline"><code>${esc(e.cmd)}</code><button class="copy" type="button" data-ex="${i}" aria-label="Copiar ejemplo">${ICON_COPY}</button></div><p>${esc(e.desc)}</p></li>`).join("");
   const lab = a.lab ? `<a class="lab" href="${esc(a.lab)}" target="_blank" rel="noopener">Practicalo en VT Security Labs ↗</a>` : "";
   const book = a.book
@@ -419,17 +454,17 @@ function renderEnd(won, quiet) {
   $("end").innerHTML = `
     <div class="verdict">
       <h2>${head}</h2>
+      ${showNext ? `<p class="next">próximo comando en <b id="countdown">${countdown()}</b></p>` : ""}
       <div class="actions">
         <button class="btn primary" type="button" id="share">${ICON_SHARE}<span>Copiar resultado</span></button>
-        <button class="btn" type="button" id="practice">${ICON_AGAIN}<span>Practicar otro</span></button>
+        <pre class="share-fallback" id="share-fallback" hidden></pre>
         ${backBtn}
+        <button class="btn" type="button" id="practice">${ICON_AGAIN}<span>Practicar otro</span></button>
       </div>
-      <div class="filter"><span>de</span>
-        <label class="sr-only" for="f-cat">Categoría</label><select id="f-cat">${catOpts}</select>
-        <label class="sr-only" for="f-lvl">Nivel</label><select id="f-lvl">${lvlOpts}</select>
+      <div class="filter" role="group" aria-label="Qué practicar">
+        <label><span>categoría</span><select id="f-cat">${catOpts}</select></label>
+        <label><span>nivel</span><select id="f-lvl">${lvlOpts}</select></label>
       </div>
-      ${showNext ? `<p class="next">próximo comando en <b id="countdown">${countdown()}</b></p>` : ""}
-      <pre class="share-fallback" id="share-fallback" hidden></pre>
     </div>
     <div class="info">
     <article class="man" aria-label="Ficha de ${esc(a.id)}">
@@ -447,12 +482,13 @@ function renderEnd(won, quiet) {
         <p class="book-hook">${book.hook}</p>
         <p class="book-title">No podés defender lo que no entendés</p>
         <p class="book-sub">${BOOK_SUB}</p>
-        <a class="book-cta" href="${BOOK_URL}" target="_blank" rel="noopener">Leé el capítulo 1 gratis ↗</a>
       </div>
+      <a class="book-cta" href="${BOOK_URL}" target="_blank" rel="noopener">Leé el capítulo 1 gratis ↗</a>
     </aside>
     </div>`;
   const end = $("end");
   end.hidden = false;
+  if (practice && !dailyDone()) $("share").classList.remove("primary");
   end.classList.toggle("in", !quiet);
   $("share").addEventListener("click", async () => {
     const text = shareText(S.day, S.guesses, a.id, practice);
@@ -476,11 +512,11 @@ function resetRound() {
   S.current = ""; S.done = false; S.busy = false; cow.notFound = 0;
   clearInterval(timer); clearTimeout(cow.revert);
   $("app").classList.remove("is-done");
-  $("end").hidden = true; $("end").innerHTML = ""; $("clues").innerHTML = "";
+  $("end").hidden = true; $("end").innerHTML = ""; $("clues").innerHTML = ""; cow.clue = undefined;
   buildBoard();
 }
 function renderAll() {
-  renderMeta(); paintBoard(); paintKeyboard(); renderClues(false); renderAssist(); renderTalk(); settleCow();
+  renderMeta(); paintBoard(); paintKeyboard(); renderClues(false); renderAssist(); renderTalk(); settleCow(); fit();
 }
 function loadDaily() {
   S.mode = "daily"; S.answer = daily(COMMANDS, S.day);
@@ -536,7 +572,7 @@ function renderStats() {
     <p class="note">Estas estadísticas son de este prototipo y quedan en este navegador. En la versión final van acá el ranking del día y las partidas de la comunidad.</p>
     <div class="rows">
       <a href="https://comandle.valentorassa.com/sala.html" target="_blank" rel="noopener"><span>Modo clase<br><small>un comando en el proyector, todos juegan desde el celular</small></span><span aria-hidden="true">↗</span></a>
-      <button type="button" id="copy-install"><span>Jugar en la terminal<br><code>go install github.com/legiosai/comandle@latest</code></span><span aria-hidden="true">${ICON_COPY}</span></button>
+      <button type="button" id="copy-install"><span>Jugar en la terminal<br><code>go install github.com/legiosai/comandle@latest</code></span>${ICON_COPY}</button>
     </div>`;
   // CSP blocks style attributes in markup; widths go through the CSSOM
   $("stats-body").querySelectorAll(".bar").forEach((b) => (b.style.width = `${b.dataset.w}%`));
@@ -562,8 +598,12 @@ function wire() {
   $("scrim").addEventListener("click", close);
   $("cow").addEventListener("click", poke);
   let rz = 0;
-  addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { cow.charW = 0; drawCow(); measureTalk(); }, 120); });
-  document.fonts?.ready.then(() => { cow.charW = 0; drawCow(); measureTalk(); });
+  addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { cow.charW = 0; drawCow(); fit(); }, 80); });
+  document.fonts?.ready.then(() => { cow.charW = 0; drawCow(); fit(); });
+  const ro = new ResizeObserver(() => fit());
+  for (const id of ["stage", "side", "play"]) ro.observe($(id));
+  // crossing the desktop breakpoint moves the clues between the box and vt's bubble
+  matchMedia("(min-width: 960px) and (min-height: 600px)").addEventListener("change", () => { if (S.answer && !S.done) { cow.base = restingLine(); settleCow(); } });
   document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { close(); return; }

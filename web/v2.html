@@ -36,17 +36,19 @@
 
   <div class="meta" id="meta"></div>
 
+  <div class="stage" id="stage">
   <main class="play" id="play">
     <div class="board" id="board" role="grid" aria-label="Tablero"></div>
   </main>
 
   <div class="side" id="side">
-    <ol class="clues" id="clues" aria-label="Pistas"></ol>
+    <section class="clues" id="clues" aria-label="Pistas"></section>
     <div class="talk" id="talk">
       <button class="cow" id="cow" type="button" aria-label="vt, el pingüino. Tocalo para ver un fortune." title="fortune | cowsay"><span class="cow-art" id="cow-art" aria-hidden="true"></span></button>
-      <p class="legend-line" id="legend" hidden><span class="legend"><span><i class="sq m2"></i>en su lugar</span><span><i class="sq m1"></i>en otra posición</span><span><i class="sq m0"></i>no está</span></span></p>
+      <p class="legend-line" id="legend" hidden><span class="legend"><span><i class="sq m2"></i>en su lugar</span><span><i class="sq m1"></i>en otro lugar</span><span><i class="sq m0"></i>no está</span></span></p>
       <p class="sr-only" id="cow-say" role="status" aria-live="polite"></p>
     </div>
+  </div>
   </div>
 
   <section class="end" id="end" aria-label="Resultado y explicación" hidden></section>
@@ -63,7 +65,7 @@
 
   <footer class="foot">
     <a class="book-line" href="https://valentorassa.com/libro?ref=comandle" target="_blank" rel="noopener">del autor de <em>No podés defender lo que no entendés</em></a>
-    <a href="https://github.com/legiosai/comandle" target="_blank" rel="noopener">código ↗</a>
+    <a class="code" href="https://github.com/legiosai/comandle" target="_blank" rel="noopener">código ↗</a>
   </footer>
 </div>
 
@@ -77,8 +79,8 @@
       <button class="icon x" type="button" data-close aria-label="Cerrar"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></button>
     </div>
     <ul class="rules">
-      <li>Adiviná el comando de Linux o de seguridad del día en 6 intentos. Cambia a medianoche, hora argentina, y es el mismo en la web y en la terminal.</li>
-      <li>Solo valen comandos reales con la misma cantidad de letras.</li>
+      <li><span>Adiviná el comando de Linux o de seguridad del día en 6 intentos. Cambia a medianoche, hora argentina, y es el mismo en la web y en la terminal.</span></li>
+      <li><span>Solo valen comandos reales con la misma cantidad de letras.</span></li>
     </ul>
     <div class="demo" aria-hidden="true">
       <div><span class="tile m2">g</span>está en su lugar</div>
@@ -86,9 +88,9 @@
       <div><span class="tile m0">x</span>no está</div>
     </div>
     <ul class="rules">
-      <li>La categoría la ves desde el principio. Con 2, 4 y 5 intentos fallidos se destapa una pista.</li>
-      <li>Al final, la ficha del comando: qué hace, tres ejemplos y qué tener en cuenta de seguridad.</li>
-      <li>vt, el pingüino, comenta la ronda. Si lo tocás, corre <code>fortune</code>.</li>
+      <li><span>La categoría la ves desde el principio. Con 2, 4 y 5 intentos fallidos se destapa una pista.</span></li>
+      <li><span>Al final, la ficha del comando: qué hace, tres ejemplos y qué tener en cuenta de seguridad.</span></li>
+      <li><span>vt, el pingüino, comenta la ronda y en el celular te dice las pistas. Si lo tocás, corre <code>fortune</code> o te repite las pistas.</span></li>
     </ul>
     <p class="keys-line"><span><kbd>tab</kbd> completa</span><span><kbd>enter</kbd> prueba</span><span><kbd>esc</kbd> cierra</span></p>
   </div>

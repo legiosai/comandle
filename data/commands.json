@@ -2278,5 +2278,841 @@
       }
     ],
     "security": "Si el comando que repetís modifica algo, lo modifica en cada ciclo, así que usalo con comandos de lectura, y evitá pasarle secretos como argumentos porque se ven en la lista de procesos."
+  },
+  {
+    "id": "head",
+    "category": "texto",
+    "level": "básico",
+    "clues": [
+      "Te muestra solo el principio de un archivo o de la salida de otro comando.",
+      "Sin opciones imprime 10 líneas; con -n elegís cuántas y con -c cuenta bytes en vez de líneas.",
+      "Es el opuesto de tail, y su nombre significa «cabeza» en inglés."
+    ],
+    "summary": "Muestra las primeras líneas o los primeros bytes de un archivo.",
+    "explanation": "head imprime el comienzo de uno o varios archivos, 10 líneas por defecto, o de lo que le llega por una tubería. Con -n elegís cuántas líneas, y con un número negativo, como -n -5, muestra todo menos las últimas cinco. Con -c corta por bytes, lo que sirve para mirar el encabezado de un archivo binario o sacar unos bytes al azar de /dev/urandom.",
+    "examples": [
+      {
+        "cmd": "head -n 5 /etc/passwd",
+        "desc": "Muestra las primeras cinco cuentas del sistema."
+      },
+      {
+        "cmd": "ls -t ~/Descargas | head -n 3",
+        "desc": "Muestra los tres archivos de la carpeta que se modificaron más recientemente."
+      },
+      {
+        "cmd": "head -c 32 /dev/urandom | base64",
+        "desc": "Saca 32 bytes al azar y los convierte en texto, útil como contraseña o token."
+      }
+    ],
+    "security": "head te deja mirar el principio de un archivo que bajaste o de un log enorme sin abrirlo entero ni ejecutarlo, pero un texto puede traer secuencias de escape que manipulan tu terminal, así que si no sabés qué es, pasalo antes por file o por cat -v."
+  },
+  {
+    "id": "sftp",
+    "category": "redes",
+    "level": "básico",
+    "clues": [
+      "Te deja subir y bajar archivos de un servidor remoto en una sesión interactiva, con comandos parecidos a los de una shell.",
+      "Adentro usás get, put, ls y cd, y con lcd o lls te movés por tu propio equipo.",
+      "Viaja dentro de una conexión SSH, y su nombre le agrega una s al del viejo protocolo de transferencia de archivos."
+    ],
+    "summary": "Transfiere archivos con un servidor remoto de forma cifrada, sobre SSH.",
+    "explanation": "sftp abre una sesión interactiva para transferir archivos con un servidor por SSH, así que usa las mismas claves, la misma configuración de ~/.ssh/config y el mismo cifrado. Con get bajás, con put subís y con reget o reput retomás una transferencia que se cortó. Con -b le pasás un archivo de comandos para correrlos sin intervención, por ejemplo en un backup.",
+    "examples": [
+      {
+        "cmd": "sftp ana@192.0.2.10",
+        "desc": "Abre una sesión con el servidor; adentro, help lista los comandos disponibles."
+      },
+      {
+        "cmd": "sftp -P 2222 ana@192.0.2.10:/srv/backups",
+        "desc": "Se conecta por el puerto 2222 y arranca directamente en la carpeta /srv/backups."
+      },
+      {
+        "cmd": "sftp -b subir.txt ana@192.0.2.10",
+        "desc": "Ejecuta los comandos del archivo, uno por línea, sin pedirte nada; necesita una clave SSH que no pida contraseña o un agente."
+      }
+    ],
+    "security": "A diferencia de FTP, que manda usuario y contraseña en texto plano, sftp cifra todo; si un usuario solo tiene que dejar archivos, configurá en el servidor ForceCommand internal-sftp con ChrootDirectory para que no tenga una shell ni vea el resto del disco."
+  },
+  {
+    "id": "getcap",
+    "category": "permisos",
+    "level": "intermedio",
+    "clues": [
+      "Te dice qué ejecutables tienen asignado un privilegio puntual de root, sin ser SUID.",
+      "Con -r recorre directorios enteros, y cada línea de su salida se ve como /usr/local/bin/miservidor cap_net_bind_service=ep.",
+      "Su hermano que asigna esos privilegios se llama igual, pero empieza con «set»."
+    ],
+    "summary": "Muestra las capabilities de Linux asignadas a archivos.",
+    "explanation": "getcap lista las capabilities de archivo, los pedazos del poder de root que un ejecutable recibe al correr aunque lo lance un usuario común. Cada línea muestra la ruta y las capabilities con sus conjuntos, como cap_net_raw=ep: e de efectiva y p de permitida. Con -r recorre un directorio entero, y por eso es la forma de auditar estos privilegios, igual que find -perm -4000 para los SUID. En Debian está en /usr/sbin, así que con un usuario común quizá tengas que llamarlo con la ruta completa.",
+    "examples": [
+      {
+        "cmd": "getcap /usr/local/bin/miservidor",
+        "desc": "Muestra qué capabilities tiene ese binario, por ejemplo cap_net_bind_service=ep."
+      },
+      {
+        "cmd": "sudo getcap -r / 2>/dev/null",
+        "desc": "Recorre todo el disco y lista cada archivo con capabilities, sin los errores de /proc."
+      },
+      {
+        "cmd": "sudo getcap -r /home /opt /tmp 2>/dev/null",
+        "desc": "Busca capabilities donde no debería haber ninguna, como en las carpetas de usuarios o temporales."
+      }
+    ],
+    "security": "Capabilities como cap_setuid, cap_dac_read_search o cap_sys_admin en un intérprete o en un binario que un usuario puede reemplazar valen lo mismo que root, así que compará el resultado de getcap -r / con una lista de referencia y desconfiá de cualquiera fuera de /usr.",
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/tu-root-no-es-root/",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
+  },
+  {
+    "id": "touch",
+    "category": "archivos",
+    "level": "básico",
+    "clues": [
+      "Crea un archivo vacío si no existe, y si existe no le cambia el contenido.",
+      "Con -d o -t elegís la fecha que va a mostrar, y con -r copiás las fechas de otro archivo.",
+      "Su trabajo de verdad es actualizar las fechas de acceso y de modificación; su nombre en inglés significa «tocar»."
+    ],
+    "summary": "Crea archivos vacíos o cambia sus fechas de acceso y modificación.",
+    "explanation": "touch actualiza la fecha de acceso y la de modificación de un archivo a la hora actual, y si el archivo no existe lo crea vacío. Lo usás para crear archivos de prueba, para dejar un archivo de marca que avise que algo ya pasó o para que una herramienta como make vuelva a procesar algo. Con -d, -t o -r le ponés la fecha que quieras, y con -c no crea nada si el archivo no existe.",
+    "examples": [
+      {
+        "cmd": "touch notas.txt",
+        "desc": "Crea el archivo vacío si no existe; si existe, solo le pone la fecha y hora actuales."
+      },
+      {
+        "cmd": "touch -d \"2026-01-15 10:30\" informe.pdf",
+        "desc": "Le pone esa fecha de acceso y de modificación al archivo."
+      },
+      {
+        "cmd": "touch -r original.conf copia.conf",
+        "desc": "Le copia a copia.conf las fechas de original.conf."
+      }
+    ],
+    "security": "El dueño de un archivo puede ponerle cualquier fecha con touch -d, así que en un análisis forense no tomes la fecha de modificación como prueba: el ctime, que touch no puede fijar, y los logs son más confiables.",
+    "book": {
+      "chapter": 5,
+      "title": "Todo es un archivo"
+    }
+  },
+  {
+    "id": "rkhunter",
+    "category": "seguridad",
+    "level": "intermedio",
+    "clues": [
+      "Revisa el sistema en busca de herramientas que esconden a un intruso, puertas traseras y archivos sospechosos.",
+      "Compara los hashes y los permisos de los binarios del sistema con una base que generás vos con --propupd.",
+      "Su nombre abrevia «cazador de rootkits» en inglés."
+    ],
+    "summary": "Busca rootkits, puertas traseras y cambios sospechosos en el sistema.",
+    "explanation": "rkhunter corre una serie de pruebas: busca archivos y directorios de rootkits conocidos, compara los hashes y permisos de binarios importantes, como ls o ps, con una base de propiedades, y revisa cuentas, la configuración de SSH, puertos y módulos del kernel. Cada prueba sale como OK o como Warning, y el detalle queda en /var/log/rkhunter.log. Es normal que dé avisos falsos después de una actualización, y por eso la base se regenera con --propupd.",
+    "examples": [
+      {
+        "cmd": "sudo rkhunter --propupd",
+        "desc": "Guarda los hashes y permisos actuales de los binarios como referencia; corrélo con el sistema recién instalado."
+      },
+      {
+        "cmd": "sudo rkhunter --check --sk",
+        "desc": "Corre todas las pruebas sin frenar a esperar una tecla entre una sección y otra."
+      },
+      {
+        "cmd": "sudo rkhunter --check --sk --rwo",
+        "desc": "Corre las pruebas y muestra solo las advertencias, útil para una tarea programada."
+      }
+    ],
+    "security": "La base que crea --propupd da por buenos los binarios que hay en ese momento, así que generala con el sistema recién instalado o después de una actualización confiable; y como un rootkit con root puede engañar a cualquier herramienta que corra en el mismo equipo, ante una sospecha seria revisá el disco desde otro sistema."
+  },
+  {
+    "id": "pstree",
+    "category": "procesos",
+    "level": "básico",
+    "clues": [
+      "Dibuja los procesos en forma de árbol, para que veas quién lanzó a quién.",
+      "Con -p muestra el PID de cada uno, con -u marca los cambios de usuario y con -s te muestra los ancestros de un proceso.",
+      "Viene en el paquete psmisc, y su nombre une el clásico comando para listar procesos con «árbol» en inglés."
+    ],
+    "summary": "Muestra los procesos que están corriendo como un árbol de padres e hijos.",
+    "explanation": "pstree arma el árbol de procesos a partir de /proc: arriba de todo está el PID 1, normalmente systemd, y debajo cada proceso cuelga del que lo creó. Los procesos iguales se agrupan, como 4*[nginx], salvo que pidas los PID con -p. Con -a ves los argumentos de cada uno, con -u te marca entre paréntesis cuando un proceso corre con otro usuario que su padre, y con un PID o un usuario como argumento muestra solo esa parte del árbol.",
+    "examples": [
+      {
+        "cmd": "pstree -p",
+        "desc": "Muestra el árbol completo con el PID de cada proceso."
+      },
+      {
+        "cmd": "pstree -a www-data",
+        "desc": "Muestra solo los procesos del usuario www-data, con sus argumentos."
+      },
+      {
+        "cmd": "pstree -s -p 1234",
+        "desc": "Muestra la cadena de ancestros del proceso 1234, desde systemd hasta él."
+      }
+    ],
+    "security": "Una shell que cuelga de un servidor web o de una base de datos, como nginx───sh───bash, rara vez es normal y suele ser la primera señal de una intrusión, así que cuando algo te parezca raro mirá el árbol con pstree -u -a."
+  },
+  {
+    "id": "gitk",
+    "category": "git",
+    "level": "básico",
+    "clues": [
+      "Abre una ventana con el historial de un repositorio: el grafo de ramas, cada commit y sus cambios.",
+      "Con --all incluye todas las ramas, y si al final ponés -- y una ruta, muestra solo los commits que la tocaron.",
+      "Está escrito en Tcl/Tk, se distribuye junto con git y su nombre le agrega una sola letra al de git."
+    ],
+    "summary": "Explorador gráfico del historial de un repositorio git.",
+    "explanation": "gitk abre una ventana que muestra el historial del repositorio como un grafo, con la lista de commits, el autor, la fecha y el diff de cada uno. Acepta las mismas opciones que git log para elegir qué mostrar, como un rango de commits, --since o una ruta después de --. Viene con git en muchas instalaciones; en Debian y Ubuntu se instala aparte, con el paquete gitk.",
+    "examples": [
+      {
+        "cmd": "gitk --all",
+        "desc": "Abre el historial de todas las ramas, con el grafo de commits."
+      },
+      {
+        "cmd": "gitk --since=\"2 weeks ago\" -- config/",
+        "desc": "Muestra solo los commits de las últimas dos semanas que tocaron la carpeta config."
+      },
+      {
+        "cmd": "gitk --all -- .env",
+        "desc": "Muestra en todas las ramas los commits que tocaron .env, aunque hoy el archivo ya no exista."
+      }
+    ],
+    "security": "Que un secreto ya no esté en el último commit no lo saca del historial: gitk --all -- con la ruta te lo muestra en un clic, y lo mismo puede hacer cualquiera que clone el repo, así que si encontrás uno, rotalo antes de pensar en reescribir la historia."
+  },
+  {
+    "id": "lsmod",
+    "category": "sistema",
+    "level": "intermedio",
+    "clues": [
+      "Lista los controladores y extensiones que el núcleo tiene cargados en este momento, con su tamaño.",
+      "Formatea lo que hay en /proc/modules, y la última columna dice qué otros módulos usan a cada uno.",
+      "Su nombre abrevia «list modules», y sus hermanos los cargan (modprobe, insmod) o los sacan (rmmod)."
+    ],
+    "summary": "Lista los módulos del kernel que están cargados.",
+    "explanation": "lsmod muestra los módulos cargados en el kernel, como drivers de placas, sistemas de archivos o funciones de red, con su tamaño en memoria y cuántos y cuáles otros módulos dependen de cada uno. Lee /proc/modules y no necesita privilegios. Para saber qué hace un módulo, de dónde se cargó y qué parámetros acepta, usás modinfo con su nombre.",
+    "examples": [
+      {
+        "cmd": "lsmod",
+        "desc": "Lista todos los módulos cargados, con su tamaño y quién los usa."
+      },
+      {
+        "cmd": "lsmod | grep usb_storage",
+        "desc": "Muestra si está cargado el módulo que usan los discos y pendrives USB."
+      },
+      {
+        "cmd": "lsmod | sort -k2 -n -r | head -n 5",
+        "desc": "Lista los cinco módulos que más memoria ocupan."
+      }
+    ],
+    "security": "Un rootkit de kernel puede borrarse de la lista que lee lsmod, así que un resultado limpio no prueba nada; si un servidor no necesita cargar módulos nuevos, bloqueá los que no usás en /etc/modprobe.d/ o cerrá la carga por completo con sysctl kernel.modules_disabled=1, que no se puede revertir hasta reiniciar."
+  },
+  {
+    "id": "pipx",
+    "category": "paquetes",
+    "level": "básico",
+    "clues": [
+      "Instala programas de línea de comandos escritos en Python, cada uno en su propio entorno aislado.",
+      "Con run ejecutás una herramienta sin dejarla instalada, y con upgrade-all actualizás todas las que tenés.",
+      "Su nombre le suma una letra al del instalador de paquetes de Python, como npx hace con npm."
+    ],
+    "summary": "Instala aplicaciones de Python de línea de comandos, cada una en su propio entorno virtual.",
+    "explanation": "pipx instala programas escritos en Python, como httpie o yt-dlp, cada uno en un entorno virtual aparte, y deja sus comandos en ~/.local/bin. Así sus dependencias no se mezclan entre sí ni con los paquetes de la distribución, y evitás instalar con pip sobre el Python del sistema, algo que Debian y Ubuntu bloquean desde hace algunas versiones. Con pipx ensurepath sumás ~/.local/bin a tu PATH.",
+    "examples": [
+      {
+        "cmd": "pipx install pip-audit",
+        "desc": "Instala pip-audit, que busca vulnerabilidades conocidas en dependencias de Python, en su propio entorno."
+      },
+      {
+        "cmd": "pipx run pip-audit -r requirements.txt",
+        "desc": "Baja pip-audit a un entorno temporal y revisa las dependencias del proyecto, sin dejarlo instalado."
+      },
+      {
+        "cmd": "pipx upgrade-all",
+        "desc": "Actualiza todas las aplicaciones instaladas con pipx."
+      }
+    ],
+    "security": "pipx install baja y deja instalado código de PyPI que corre con los permisos de tu usuario, y ahí hay paquetes con nombres casi iguales a los de proyectos conocidos para engañar a quien escribe mal: copiá el nombre exacto desde la página del proyecto y nunca corras pipx con sudo."
+  },
+  {
+    "id": "hadolint",
+    "category": "contenedores",
+    "level": "intermedio",
+    "clues": [
+      "Revisa un Dockerfile y te avisa de malas prácticas antes de que construyas la imagen.",
+      "Sus reglas tienen códigos como DL3007, que marca el uso de la etiqueta latest, y revisa el código de cada RUN con ShellCheck.",
+      "Está escrito en Haskell, y su nombre mezcla ese lenguaje, Docker y «lint»."
+    ],
+    "summary": "Analiza Dockerfiles y señala errores y malas prácticas.",
+    "explanation": "hadolint lee un Dockerfile y lo compara con un conjunto de reglas de buenas prácticas: usar etiquetas fijas en vez de latest, no terminar como root, limpiar la caché de apt o fijar las versiones de los paquetes. Además pasa el código de cada RUN por ShellCheck, así que también encuentra errores de shell. Cada hallazgo tiene un código, como DL3008 o SC2086, y una severidad, y con --failure-threshold decidís a partir de cuál termina con error.",
+    "examples": [
+      {
+        "cmd": "hadolint Dockerfile",
+        "desc": "Revisa el Dockerfile y lista cada hallazgo con su línea, su código y su severidad."
+      },
+      {
+        "cmd": "docker run --rm -i hadolint/hadolint < Dockerfile",
+        "desc": "Hace la misma revisión con la imagen oficial, sin instalar nada."
+      },
+      {
+        "cmd": "hadolint --ignore DL3008 --failure-threshold warning Dockerfile",
+        "desc": "Ignora la regla de fijar versiones de apt y solo falla por advertencias o errores, útil en CI."
+      }
+    ],
+    "security": "Reglas como DL3002, que pide que el último USER no sea root, y DL3007, que desaconseja latest, apuntan a riesgos reales, así que no las silencies con --ignore ni con un comentario # hadolint ignore= sin dejar escrito por qué; y como solo lee el Dockerfile, no ve vulnerabilidades de los paquetes de la imagen: para eso están trivy o grype."
+  },
+  {
+    "id": "nmcli",
+    "category": "redes",
+    "level": "intermedio",
+    "clues": [
+      "Maneja las conexiones cableadas y Wi-Fi de un Linux desde la terminal, sin abrir el panel de red del escritorio.",
+      "Con device wifi list ves las redes cercanas y con connection show, los perfiles guardados.",
+      "Es la interfaz de línea de comandos de NetworkManager, y su nombre es justamente eso abreviado."
+    ],
+    "summary": "Controla NetworkManager: conexiones, Wi-Fi e interfaces de red.",
+    "explanation": "nmcli habla con NetworkManager, el servicio que maneja la red en la mayoría de los escritorios Linux y en muchos servidores. Con device ves las interfaces y su estado, con connection creás, modificás, levantás o bajás perfiles, y con device wifi buscás redes inalámbricas y te conectás. Los cambios quedan guardados en el perfil, así que sobreviven a un reinicio.",
+    "examples": [
+      {
+        "cmd": "nmcli device status",
+        "desc": "Lista las interfaces de red, su tipo y si están conectadas."
+      },
+      {
+        "cmd": "nmcli device wifi list",
+        "desc": "Lista las redes Wi-Fi cercanas con su señal y su tipo de seguridad, como WPA2 o WPA3."
+      },
+      {
+        "cmd": "nmcli --ask device wifi connect \"MiRed\"",
+        "desc": "Se conecta a la red y te pide la contraseña, en vez de que la escribas en el comando."
+      }
+    ],
+    "security": "Las contraseñas Wi-Fi guardadas quedan en los perfiles de /etc/NetworkManager, legibles solo por root, y nmcli -s las muestra a quien tenga permiso; no las pongas en el comando con password, porque quedan en el historial del shell: usá --ask."
+  },
+  {
+    "id": "unzip",
+    "category": "archivos",
+    "level": "básico",
+    "clues": [
+      "Saca los archivos de un paquete comprimido y recrea las carpetas que traía.",
+      "Con -l lista el contenido sin extraer nada, con -t verifica que no esté dañado y con -d elegís la carpeta de destino.",
+      "Es el compañero de zip, y su nombre dice justamente que deshace lo que hizo el otro."
+    ],
+    "summary": "Lista, verifica y extrae el contenido de archivos .zip.",
+    "explanation": "unzip extrae los archivos de un .zip y recrea la estructura de carpetas que traía. Con -l ves qué hay adentro sin extraer nada, con -t comprobás que el archivo no esté dañado y con -d elegís dónde extraer. Si un archivo ya existe te pregunta antes de pisarlo: con -n no pisa nunca y con -o pisa sin preguntar.",
+    "examples": [
+      {
+        "cmd": "unzip -l descarga.zip",
+        "desc": "Lista los archivos que trae, con su tamaño y su fecha, sin extraer nada."
+      },
+      {
+        "cmd": "unzip -t descarga.zip",
+        "desc": "Verifica la integridad de cada archivo comprimido."
+      },
+      {
+        "cmd": "unzip descarga.zip -d ~/proyectos/descarga",
+        "desc": "Extrae todo en esa carpeta y no en el directorio actual."
+      }
+    ],
+    "security": "Un .zip puede traer nombres con ../ para escribir fuera de la carpeta de destino, el ataque conocido como zip slip: unzip saca esos ../ por defecto, así que nunca uses la opción -: con archivos que no conocés, y listá el contenido con -l antes de extraer."
+  },
+  {
+    "id": "comm",
+    "category": "texto",
+    "level": "intermedio",
+    "clues": [
+      "Compara dos listas ordenadas y te dice qué líneas están solo en una, solo en la otra o en las dos.",
+      "Su salida tiene tres columnas, y con -1, -2 y -3 ocultás las que no te interesan.",
+      "Su nombre abrevia «común» en inglés, y casi siempre se usa junto con sort."
+    ],
+    "summary": "Compara dos archivos ordenados línea por línea.",
+    "explanation": "comm lee dos archivos ordenados y separa sus líneas en tres columnas: las que están solo en el primero, las que están solo en el segundo y las que están en los dos. Con -1, -2 y -3 suprimís columnas, así que comm -13 deja solo lo nuevo del segundo archivo y comm -12 solo lo que comparten. Los dos archivos tienen que estar ordenados con el mismo criterio; si no, comm avisa y el resultado no sirve.",
+    "examples": [
+      {
+        "cmd": "comm -13 usuarios-ayer.txt usuarios-hoy.txt",
+        "desc": "Muestra solo las cuentas que aparecieron hoy."
+      },
+      {
+        "cmd": "comm -12 <(sort lista-a.txt) <(sort lista-b.txt)",
+        "desc": "Ordena las dos listas al vuelo y muestra solo las líneas que están en ambas."
+      },
+      {
+        "cmd": "comm -23 <(apt-mark showmanual | sort) permitidos.txt",
+        "desc": "Lista los paquetes instalados a mano que no están en tu lista de permitidos, ya ordenada."
+      }
+    ],
+    "security": "Comparar una foto de hoy contra una de referencia, como la lista de usuarios, de puertos abiertos o de binarios SUID, es una forma simple de detectar cambios: guardá la referencia donde un intruso no pueda reescribirla, y ordená las dos con el mismo LC_ALL, porque un orden distinto da diferencias falsas."
+  },
+  {
+    "id": "groups",
+    "category": "permisos",
+    "level": "básico",
+    "clues": [
+      "Te dice a qué grupos pertenece tu usuario o el usuario que le pases.",
+      "Si recién te agregaron a uno y no aparece, es porque tu sesión no lo ve hasta que vuelvas a entrar.",
+      "Da la misma lista que id -Gn, y su nombre es el plural en inglés de lo que lista."
+    ],
+    "summary": "Muestra los grupos a los que pertenece un usuario.",
+    "explanation": "groups imprime los grupos de tu proceso actual o, si le pasás un nombre, los de ese usuario según la base de grupos del sistema. La diferencia importa: si te agregaron a un grupo hace un rato, groups con tu nombre ya lo muestra, pero groups a secas no, porque tu sesión sigue con la lista de cuando entraste. Los grupos deciden mucho de lo que podés hacer, como usar sudo, Docker o leer los logs.",
+    "examples": [
+      {
+        "cmd": "groups",
+        "desc": "Lista los grupos de tu sesión actual."
+      },
+      {
+        "cmd": "groups ana",
+        "desc": "Muestra los grupos de ana según la base de grupos, aunque ella tenga una sesión abierta con la lista vieja."
+      },
+      {
+        "cmd": "groups ana beto",
+        "desc": "Muestra los grupos de varios usuarios, uno por línea."
+      }
+    ],
+    "security": "Estar en grupos como sudo, wheel, docker, lxd o disk equivale a tener root, porque cualquiera de ellos alcanza para tomar el control del sistema, así que revisá quién está en cada uno y sacá a quien no lo necesite."
+  },
+  {
+    "id": "helm",
+    "category": "contenedores",
+    "level": "intermedio",
+    "clues": [
+      "Instala aplicaciones completas en un clúster de Kubernetes a partir de paquetes con plantillas.",
+      "Esos paquetes se llaman charts, se configuran con un values.yaml y cada instalación es un release que podés actualizar o volver atrás.",
+      "Se presenta como el gestor de paquetes de Kubernetes, y su nombre es la palabra inglesa para el timón de un barco."
+    ],
+    "summary": "Instala y administra aplicaciones en Kubernetes a partir de charts.",
+    "explanation": "helm instala aplicaciones en un clúster de Kubernetes a partir de charts: paquetes con plantillas de manifiestos y un values.yaml con la configuración por defecto, que pisás con -f o --set. Cada instalación es un release con historial, así que con helm upgrade la actualizás y con helm rollback volvés a una versión anterior. Usa las mismas credenciales del kubeconfig que kubectl.",
+    "examples": [
+      {
+        "cmd": "helm repo add podinfo https://stefanprodan.github.io/podinfo",
+        "desc": "Suma el repositorio de charts de podinfo, una aplicación web de ejemplo."
+      },
+      {
+        "cmd": "helm template demo podinfo/podinfo | less",
+        "desc": "Muestra los manifiestos de Kubernetes que crearía el chart, sin tocar el clúster."
+      },
+      {
+        "cmd": "helm install demo podinfo/podinfo -n pruebas --create-namespace",
+        "desc": "Instala el chart como el release demo, en el namespace pruebas, que crea si no existe."
+      }
+    ],
+    "security": "Un chart crea en el clúster lo que quiera con tus credenciales, incluidos roles de RBAC y pods privilegiados, así que revisá con helm template lo que va a instalar antes de hacerlo y usá charts de fuentes que conocés."
+  },
+  {
+    "id": "free",
+    "category": "sistema",
+    "level": "básico",
+    "clues": [
+      "Te muestra cuánta memoria RAM y cuánta swap tiene el sistema, y cuánta está en uso.",
+      "Con -h usa unidades legibles, como Gi o Mi, y con -s repite la medición cada tantos segundos.",
+      "Su nombre en inglés significa «libre», aunque el dato que más importa es el de la columna available."
+    ],
+    "summary": "Muestra el uso de la memoria RAM y de la swap.",
+    "explanation": "free lee /proc/meminfo y resume la memoria total, la usada, la libre, la compartida, la que el kernel usa como buffers y caché, y la disponible. La columna clave es available: cuánta memoria pueden usar los programas nuevos sin recurrir a la swap, porque Linux usa la RAM libre como caché de disco y la libera cuando hace falta. Que free sea bajo, entonces, no es un problema; que available sea bajo y la swap crezca, sí.",
+    "examples": [
+      {
+        "cmd": "free -h",
+        "desc": "Muestra la memoria y la swap en unidades legibles."
+      },
+      {
+        "cmd": "free -h -s 5 -c 3",
+        "desc": "Mide tres veces, cada cinco segundos, y termina."
+      },
+      {
+        "cmd": "free -h -t",
+        "desc": "Agrega una fila con el total de RAM más swap."
+      }
+    ],
+    "security": "Un consumo de memoria que no podés explicar, con un proceso desconocido arriba de todo en top o htop, es una señal típica de un minero de criptomonedas que instaló un intruso; y si la RAM se agota, el OOM killer del kernel empieza a matar procesos, a veces justo el servicio que más te importa."
+  },
+  {
+    "id": "fuser",
+    "category": "procesos",
+    "level": "intermedio",
+    "clues": [
+      "Te dice qué procesos están usando un archivo, una carpeta o un puerto.",
+      "Con -m revisás un sistema de archivos entero, como un pendrive que no se deja desmontar, y con 80/tcp, un puerto.",
+      "Viene en psmisc, y su nombre abrevia «file user»."
+    ],
+    "summary": "Identifica los procesos que usan archivos, sistemas de archivos o sockets.",
+    "explanation": "fuser lista los PID de los procesos que tienen abierto un archivo, trabajan dentro de un directorio o usan un puerto. Con -v ves además el usuario, el comando y cómo lo usa cada uno: c si es su directorio actual, e si es su ejecutable, f si es un archivo abierto. Es la respuesta rápida al «target is busy» que aparece al desmontar un disco. Con -k mata esos procesos, así que usalo con cuidado.",
+    "examples": [
+      {
+        "cmd": "fuser -v datos.db",
+        "desc": "Muestra qué procesos tienen abierto el archivo, con su usuario y su comando."
+      },
+      {
+        "cmd": "sudo fuser -v 22/tcp",
+        "desc": "Muestra qué procesos usan el puerto 22 por TCP, escuchando o conectados."
+      },
+      {
+        "cmd": "sudo fuser -vm /media/usb",
+        "desc": "Lista todos los procesos que usan algo dentro del pendrive, para saber por qué no se puede desmontar."
+      }
+    ],
+    "security": "Sin sudo, fuser solo ve tus propios procesos, así que para revisar un servicio del sistema corrélo con privilegios; y antes de usar -k mirá la lista con -v, porque mata todo lo que use ese recurso, incluida tu propia shell si estás parado ahí."
+  },
+  {
+    "id": "exiftool",
+    "category": "seguridad",
+    "level": "básico",
+    "clues": [
+      "Lee y edita los datos escondidos dentro de fotos, videos y documentos, como la cámara o la fecha.",
+      "Puede revelar las coordenadas GPS donde se sacó una foto, y con -all= borrás todos esos datos.",
+      "Lo escribió Phil Harvey en Perl, y su nombre une el formato de metadatos de las cámaras digitales con «herramienta» en inglés."
+    ],
+    "summary": "Lee, escribe y borra metadatos de imágenes, videos, PDF y otros archivos.",
+    "explanation": "exiftool lee y modifica los metadatos de cientos de formatos: EXIF, IPTC y XMP en fotos, y también los de PDF, documentos de Office, audio y video. Ahí suelen quedar el modelo de la cámara o del celular, la fecha, el programa que se usó, el autor y, en muchas fotos, las coordenadas GPS. Cuando escribe, guarda una copia del original con _original al final del nombre, salvo que uses -overwrite_original. En Debian viene en el paquete libimage-exiftool-perl.",
+    "examples": [
+      {
+        "cmd": "exiftool foto.jpg",
+        "desc": "Lista todos los metadatos: cámara, fecha, programa y, si los tiene, la ubicación."
+      },
+      {
+        "cmd": "exiftool -gps:all foto.jpg",
+        "desc": "Muestra solo las etiquetas de GPS, para saber si la foto delata dónde se sacó."
+      },
+      {
+        "cmd": "exiftool -all= foto.jpg",
+        "desc": "Borra todos los metadatos que puede escribir y guarda la versión anterior como foto.jpg_original."
+      }
+    ],
+    "security": "Antes de publicar una foto o un documento, mirá sus metadatos, porque pueden delatar dónde vivís, qué equipo usás o tu nombre de usuario; y al limpiarlos borrá también la copia _original, que sigue teniendo todo."
+  },
+  {
+    "id": "glab",
+    "category": "git",
+    "level": "intermedio",
+    "clues": [
+      "Te deja abrir merge requests, revisar pipelines y manejar issues sin salir de la terminal.",
+      "Con mr create abrís un pedido de cambios desde tu rama, y con ci seguís el estado de los pipelines.",
+      "Es la CLI oficial de la plataforma que tiene un tanuki naranja como logo, el equivalente de gh para GitHub."
+    ],
+    "summary": "Maneja merge requests, issues y pipelines de GitLab desde la terminal.",
+    "explanation": "glab es la CLI oficial de GitLab: te deja crear y revisar merge requests, abrir y comentar issues, y seguir, relanzar o cancelar pipelines sin pasar por la web. Detecta el proyecto a partir del remoto del repositorio en el que estás parado y funciona tanto con gitlab.com como con instancias propias. Se autentica con el navegador o con un token personal.",
+    "examples": [
+      {
+        "cmd": "glab auth login",
+        "desc": "Te autentica contra GitLab y guarda la credencial en el llavero del sistema."
+      },
+      {
+        "cmd": "glab mr create --fill --draft",
+        "desc": "Abre un merge request en borrador con el título y la descripción que salen de tus commits."
+      },
+      {
+        "cmd": "glab mr list --reviewer=@me",
+        "desc": "Lista los merge requests en los que te pidieron revisión."
+      }
+    ],
+    "security": "glab guarda el token en el llavero del sistema, pero si no hay uno disponible, o si usás --insecure-storage, lo deja en texto plano en su archivo de configuración: revisalo con glab auth status y creá tokens con los permisos y la fecha de vencimiento justos."
+  },
+  {
+    "id": "apt-mark",
+    "category": "paquetes",
+    "level": "intermedio",
+    "clues": [
+      "Marca paquetes como instalados a mano o como dependencias automáticas, lo que decide qué se lleva autoremove.",
+      "Con hold congela un paquete para que no se actualice, y con showhold ves cuáles están congelados.",
+      "Es de la misma familia de herramientas de Debian que apt-get, y su segunda parte significa «marcar» en inglés."
+    ],
+    "summary": "Marca paquetes como manuales, automáticos o retenidos en sistemas Debian.",
+    "explanation": "apt-mark cambia cómo APT trata a un paquete instalado. Los marcados como automáticos son dependencias, y apt autoremove los borra cuando ya nada los necesita; los manuales son los que pediste vos. Con hold congelás un paquete en su versión actual para que apt upgrade no lo toque, y con unhold lo liberás.",
+    "examples": [
+      {
+        "cmd": "apt-mark showhold",
+        "desc": "Lista los paquetes congelados, que no se van a actualizar."
+      },
+      {
+        "cmd": "sudo apt-mark hold nginx",
+        "desc": "Congela nginx en su versión actual hasta que lo liberes con apt-mark unhold nginx."
+      },
+      {
+        "cmd": "apt-mark showmanual",
+        "desc": "Lista los paquetes que se instalaron a pedido y no como dependencia, una buena base para documentar un servidor."
+      }
+    ],
+    "security": "Un paquete en hold tampoco recibe actualizaciones de seguridad, así que revisá seguido apt-mark showhold y no dejes congelado nada expuesto a la red más tiempo del necesario."
+  },
+  {
+    "id": "readlink",
+    "category": "archivos",
+    "level": "intermedio",
+    "clues": [
+      "Te dice a dónde apunta un enlace simbólico.",
+      "Con -f sigue todos los enlaces del camino y te devuelve la ruta absoluta real del archivo final.",
+      "Comparte nombre con la llamada al sistema que usa, y ese nombre une «leer» y «enlace» en inglés."
+    ],
+    "summary": "Muestra el destino de un enlace simbólico o la ruta real de un archivo.",
+    "explanation": "readlink imprime el destino de un enlace simbólico tal como está guardado, que puede ser una ruta relativa. Con -f resuelve toda la cadena de enlaces y te devuelve la ruta absoluta y canónica del archivo final. Lo usás en scripts para saber dónde está realmente un ejecutable, y para mirar en /proc/PID/exe qué binario está corriendo un proceso.",
+    "examples": [
+      {
+        "cmd": "readlink /usr/bin/python3",
+        "desc": "Muestra a qué versión apunta el enlace, por ejemplo python3.13."
+      },
+      {
+        "cmd": "readlink -f /sbin/init",
+        "desc": "Sigue todos los enlaces y, en la mayoría de las distribuciones, termina en el binario de systemd."
+      },
+      {
+        "cmd": "sudo readlink /proc/1234/exe",
+        "desc": "Muestra la ruta del ejecutable que corre el proceso 1234; si alguien lo borró del disco, le agrega «(deleted)»."
+      }
+    ],
+    "security": "Un /proc/PID/exe que termina en «(deleted)» quiere decir que el proceso corre un binario que ya no está en el disco: pasa después de actualizar un paquete, pero también es típico del malware que se borra al arrancar, así que vale la pena revisarlo.",
+    "book": {
+      "chapter": 3,
+      "title": "Programa, proceso, thread"
+    }
+  },
+  {
+    "id": "unshare",
+    "category": "contenedores",
+    "level": "avanzado",
+    "clues": [
+      "Corre un programa aislado del resto del sistema, con su propia vista de los procesos, de la red o del nombre del equipo.",
+      "Con -r te mapea a root dentro de un espacio de usuario nuevo, y con --net el programa ve una red propia con solo la interfaz de loopback.",
+      "Es de util-linux y hermano de nsenter: uno crea los namespaces y el otro entra en uno que ya existe."
+    ],
+    "summary": "Ejecuta un programa en namespaces nuevos, la base de los contenedores.",
+    "explanation": "unshare ejecuta un programa en namespaces nuevos: de procesos (--pid), de red (--net), de montajes (--mount), de nombre de equipo (--uts) o de usuario (--user). Es la pieza con la que se arman los contenedores: con --map-root-user sos root adentro sin serlo afuera, y con --pid --fork --mount-proc el programa se ve a sí mismo como el PID 1. Sin root, necesita que el sistema permita crear user namespaces a usuarios comunes.",
+    "examples": [
+      {
+        "cmd": "unshare --user --map-root-user id",
+        "desc": "Muestra uid=0(root) dentro de un user namespace nuevo, aunque afuera sigas siendo tu usuario."
+      },
+      {
+        "cmd": "unshare -r --net ip link",
+        "desc": "Corre ip link en una red aislada, donde solo existe la interfaz de loopback, apagada."
+      },
+      {
+        "cmd": "unshare --user --map-root-user --pid --fork --mount-proc ps aux",
+        "desc": "Corre ps en un namespace de procesos propio, donde se ve a sí mismo como el PID 1 y no ve nada más."
+      }
+    ],
+    "security": "Que un usuario común pueda crear user namespaces expone más partes del kernel, y varias vulnerabilidades de escalada solo se podían explotar desde uno: Ubuntu lo limita con AppArmor, y en un servidor que no corre contenedores sin root ni navegadores podés apagarlo con sysctl user.max_user_namespaces=0.",
+    "lab": "https://securitylabs.valentorassa.com/labs/linux-real/tu-root-no-es-root/",
+    "book": {
+      "chapter": 8,
+      "title": "Un contenedor no es una VM"
+    }
+  },
+  {
+    "id": "column",
+    "category": "texto",
+    "level": "básico",
+    "clues": [
+      "Acomoda en una tabla prolija un texto cuyos campos están separados por espacios o por otro carácter.",
+      "Con -t arma la tabla y con -s le decís qué carácter separa los campos, como los dos puntos de /etc/passwd.",
+      "Viene en util-linux, y su nombre es la palabra inglesa para cada división vertical de una tabla."
+    ],
+    "summary": "Acomoda texto en columnas alineadas, como una tabla.",
+    "explanation": "column toma líneas de texto y las acomoda en columnas alineadas para que se lean de un vistazo. Con -t arma una tabla a partir de los campos, con -s elegís el separador de entrada y con -N les ponés nombre a las columnas. Es el último paso típico de una tubería: lo que devuelven awk, cut o jq se vuelve una tabla legible. Con -J, junto con los nombres de -N, la salida es JSON.",
+    "examples": [
+      {
+        "cmd": "column -t -s: /etc/passwd",
+        "desc": "Muestra las cuentas del sistema como una tabla, con un campo por columna."
+      },
+      {
+        "cmd": "mount | column -t",
+        "desc": "Alinea la lista de sistemas de archivos montados para que se lea mejor."
+      },
+      {
+        "cmd": "column -t -s, -N usuario,ip,fecha accesos.csv",
+        "desc": "Muestra un CSV simple, sin comillas, como una tabla con títulos."
+      }
+    ],
+    "security": "Al revisar /etc/passwd como tabla con column -t -s:, buscá cuentas con UID 0 además de root, o con un shell de login donde debería estar nologin: son señales clásicas de una cuenta que agregó un intruso.",
+    "book": {
+      "chapter": 9,
+      "title": "La nube es la computadora de otro"
+    }
+  },
+  {
+    "id": "ltrace",
+    "category": "procesos",
+    "level": "avanzado",
+    "clues": [
+      "Te muestra cada función de biblioteca que llama un programa mientras corre, con sus argumentos.",
+      "Con -c resume cuántas veces llamó a cada una, con -e filtrás por nombre y con -S suma también las llamadas al sistema.",
+      "Es el primo de strace: cambia la s de «system» por la l de «library»."
+    ],
+    "summary": "Rastrea las llamadas a bibliotecas dinámicas que hace un programa.",
+    "explanation": "ltrace intercepta las llamadas que un programa hace a funciones de bibliotecas compartidas, como malloc, strcmp o printf de la libc, y te muestra cada una con sus argumentos y lo que devolvió. Donde strace ve el diálogo con el kernel, ltrace ve lo que pasa un nivel más arriba, en el espacio de usuario. Solo funciona con programas enlazados dinámicamente, y como usa ptrace, igual que strace, el programa corre mucho más lento.",
+    "examples": [
+      {
+        "cmd": "ltrace ./programa",
+        "desc": "Corre el programa y muestra cada llamada a funciones de biblioteca, con sus argumentos y lo que devolvieron."
+      },
+      {
+        "cmd": "ltrace -c ./programa",
+        "desc": "Al terminar, resume cuántas veces llamó a cada función y cuánto tiempo le llevaron."
+      },
+      {
+        "cmd": "ltrace -e malloc+free -p 1234",
+        "desc": "Se engancha a un proceso que ya está corriendo y muestra solo sus pedidos y liberaciones de memoria."
+      }
+    ],
+    "security": "Como ve los argumentos de cada llamada, ltrace muestra en claro las cadenas que maneja un programa, incluidas las claves que compara o descifra: dejá kernel.yama.ptrace_scope en 1 o más para que un usuario no pueda engancharse a procesos que no lanzó él, y no confíes en que un secreto escondido dentro de un binario quede oculto."
+  },
+  {
+    "id": "usermod",
+    "category": "permisos",
+    "level": "intermedio",
+    "clues": [
+      "Cambia los datos de una cuenta que ya existe: su shell, su carpeta personal o sus grupos.",
+      "Con -aG suma al usuario a un grupo sin sacarlo de los demás, y con -L bloquea su contraseña.",
+      "Es el hermano de useradd y userdel, y su nombre une «usuario» con «modificar» en inglés."
+    ],
+    "summary": "Modifica una cuenta de usuario existente.",
+    "explanation": "usermod cambia los atributos de una cuenta: con -s su shell, con -d su carpeta personal, con -e una fecha de vencimiento y con -G sus grupos secundarios. El detalle que más errores causa es que -G sin -a reemplaza la lista completa de grupos, así que para sumar uno sin perder los demás van juntos. Los cambios de grupo se ven recién cuando el usuario vuelve a iniciar sesión.",
+    "examples": [
+      {
+        "cmd": "sudo usermod -aG devs ana",
+        "desc": "Suma a ana al grupo devs sin quitarla de los grupos que ya tenía."
+      },
+      {
+        "cmd": "sudo usermod -s /usr/sbin/nologin servicio",
+        "desc": "Le saca la shell interactiva a una cuenta de servicio."
+      },
+      {
+        "cmd": "sudo usermod -L -e 1 beto",
+        "desc": "Bloquea la contraseña de beto y vence su cuenta, para cortarle el acceso sin borrar sus archivos."
+      }
+    ],
+    "security": "Bloquear la contraseña con -L no corta el acceso por clave SSH, porque no toca ~/.ssh/authorized_keys: para dar de baja a alguien vencé también la cuenta con -e 1, que frena el ingreso por SSH, y revisá sus claves y sus tareas programadas."
+  },
+  {
+    "id": "gitsign",
+    "category": "git",
+    "level": "avanzado",
+    "clues": [
+      "Firma tus commits sin que tengas que crear ni guardar una clave privada.",
+      "Te identificás con una cuenta como Google o GitHub, recibís un certificado que dura minutos y la firma queda anotada en un registro público de transparencia.",
+      "Es parte del proyecto Sigstore, el mismo de cosign, y su nombre une el control de versiones con «firmar» en inglés."
+    ],
+    "summary": "Firma commits y tags de git con certificados de corta duración de Sigstore.",
+    "explanation": "gitsign firma commits y tags usando Sigstore: en vez de una clave GPG que tenés que cuidar, iniciás sesión con un proveedor como GitHub o Google, recibís un certificado que vence en minutos y la firma queda anotada en Rekor, un registro público de transparencia. Se configura como el programa de firma x509 de git, así que después firmás como siempre, con commit.gpgsign o con git commit -S. Para verificar, gitsign verify comprueba la firma y también quién la hizo.",
+    "examples": [
+      {
+        "cmd": "git config --local gpg.x509.program gitsign",
+        "desc": "Le dice a git que firme con gitsign en este repositorio; se completa con gpg.format x509 y commit.gpgsign true."
+      },
+      {
+        "cmd": "git commit -S -m \"Corregir la validación del login\"",
+        "desc": "Firma el commit: gitsign abre el navegador para que inicies sesión y obtiene un certificado de corta duración."
+      },
+      {
+        "cmd": "gitsign verify --certificate-identity=ana@example.com --certificate-oidc-issuer=https://accounts.google.com HEAD",
+        "desc": "Verifica que el último commit lo haya firmado esa cuenta, autenticada con ese proveedor."
+      }
+    ],
+    "security": "La firma queda en Rekor, que es público, y el certificado incluye tu email, así que pensá qué identidad exponés antes de usarlo en un repo privado; y para verificar usá gitsign verify con la identidad esperada, porque git verify-commit solo comprueba que la firma sea válida, no quién firmó."
+  },
+  {
+    "id": "ethtool",
+    "category": "redes",
+    "level": "intermedio",
+    "clues": [
+      "Muestra y cambia la configuración de una placa de red física: velocidad, dúplex y si hay un cable conectado.",
+      "Con -i ves el driver y el firmware, y con -S los contadores de errores y de paquetes descartados de la placa.",
+      "Su nombre junta el estándar de red cableada más usado con «herramienta» en inglés."
+    ],
+    "summary": "Consulta y ajusta la configuración y las estadísticas de una placa de red.",
+    "explanation": "ethtool le pregunta al driver de una interfaz de red por su estado físico: velocidad negociada, dúplex, si detecta enlace y qué modos soporta. Con -i ves el driver y la versión del firmware, con -S los contadores internos de la placa y con -s cambiás parámetros como la velocidad o el Wake-on-LAN. Es la herramienta para cuando la red anda lenta o se corta y querés saber si el problema es el cable o la placa; en los ejemplos la interfaz es enp3s0, y la tuya la ves con ip link.",
+    "examples": [
+      {
+        "cmd": "sudo ethtool enp3s0",
+        "desc": "Muestra la velocidad, el dúplex, si hay enlace (Link detected) y, con sudo, el modo de Wake-on-LAN."
+      },
+      {
+        "cmd": "ethtool -S enp3s0 | grep -i err",
+        "desc": "Filtra los contadores de la placa que hablan de errores, útiles para detectar un cable dañado."
+      },
+      {
+        "cmd": "sudo ethtool -s enp3s0 wol d",
+        "desc": "Apaga el Wake-on-LAN, para que nadie pueda encender el equipo con un paquete por la red."
+      }
+    ],
+    "security": "Con Wake-on-LAN en g, cualquiera en tu red local puede encender el equipo mandándole un «paquete mágico»; si no lo usás, apagalo con ethtool -s y también en el BIOS, porque según el driver el cambio no sobrevive a un reinicio."
+  },
+  {
+    "id": "mount",
+    "category": "sistema",
+    "level": "intermedio",
+    "clues": [
+      "Conecta un disco, una partición o un pendrive a una carpeta del árbol de directorios.",
+      "Con -o le pasás opciones como ro, noexec o nosuid, y sin argumentos lista todo lo que está conectado.",
+      "Su opuesto se escribe casi igual, pero le falta la n que va después de la u."
+    ],
+    "summary": "Monta sistemas de archivos en el árbol de directorios, o lista los montados.",
+    "explanation": "mount conecta un sistema de archivos, de un disco, de una imagen o de la red, a un directorio, el punto de montaje, y desde ahí sus archivos quedan accesibles como cualquier otro. Con -t elegís el tipo, como ext4 o vfat, y con -o las opciones, como ro para solo lectura. Sin argumentos lista todo lo montado, aunque findmnt muestra lo mismo como árbol. Lo que montes a mano se pierde al reiniciar, salvo que lo agregues a /etc/fstab.",
+    "examples": [
+      {
+        "cmd": "mount -t ext4",
+        "desc": "Lista solo los sistemas de archivos ext4 que están montados."
+      },
+      {
+        "cmd": "sudo mount -o ro,nosuid,nodev,noexec /dev/sdb1 /mnt/usb",
+        "desc": "Monta el pendrive en solo lectura y sin permitir ejecutables, SUID ni archivos de dispositivo."
+      },
+      {
+        "cmd": "sudo mount -o remount,rw /mnt/usb",
+        "desc": "Vuelve a montar el pendrive con escritura habilitada, sin desmontarlo."
+      }
+    ],
+    "security": "Montá los pendrives y los discos que no conocés con nosuid, nodev y noexec, para que un binario SUID o un archivo de dispositivo traído de afuera no sirva para escalar privilegios; noexec frena la ejecución directa, pero no impide correr un script con sh script.sh.",
+    "book": {
+      "chapter": 4,
+      "title": "Quién actúa, y con qué permiso"
+    }
+  },
+  {
+    "id": "aide",
+    "category": "seguridad",
+    "level": "avanzado",
+    "clues": [
+      "Toma una foto de los archivos del sistema y después te avisa cuáles se agregaron, se borraron o cambiaron.",
+      "Primero creás la base con --init y después la comparás con --check; en Debian siempre hay que pasarle --config.",
+      "Es un detector de intrusiones que trabaja sobre el disco, una alternativa libre a Tripwire, y su nombre es una sigla en inglés de cuatro letras."
+    ],
+    "summary": "Verifica la integridad de los archivos contra una base de referencia.",
+    "explanation": "aide recorre los archivos que indica su configuración y guarda en una base sus atributos: hashes, permisos, dueño, tamaño y fechas. Después, con --check, los vuelve a recorrer y te informa qué se agregó, qué se borró y qué cambió. Con --init genera una base nueva y con --update compara y genera otra a la vez; en Debian las bases están en /var/lib/aide, y la nueva, aide.db.new, tiene que pasar a llamarse aide.db para que la próxima revisión la use.",
+    "examples": [
+      {
+        "cmd": "sudo aide --config /etc/aide/aide.conf --init",
+        "desc": "Recorre el sistema y genera la base de referencia en /var/lib/aide/aide.db.new."
+      },
+      {
+        "cmd": "sudo aide --config /etc/aide/aide.conf --check",
+        "desc": "Compara el estado actual con la base y lista los archivos agregados, borrados o modificados."
+      },
+      {
+        "cmd": "sudo aide --config /etc/aide/aide.conf --update",
+        "desc": "Hace la misma revisión y además guarda una base nueva con el estado actual, para aceptar los cambios que esperabas."
+      }
+    ],
+    "security": "Si la base queda en el mismo equipo, un atacante con root puede regenerarla junto con sus cambios, así que guardá una copia en un medio de solo lectura o en otro servidor y comparala desde ahí; y revisá cada cambio antes de aceptarlo con --update."
+  },
+  {
+    "id": "zypper",
+    "category": "paquetes",
+    "level": "intermedio",
+    "clues": [
+      "Instala, actualiza y quita paquetes en una familia de distribuciones que tiene un camaleón verde como mascota.",
+      "Con refresh actualiza los repositorios, con patch aplica los arreglos publicados y con list-patches --category security ves solo los de seguridad.",
+      "Es el gestor de paquetes de línea de comandos de openSUSE y SUSE Linux Enterprise, y trabaja con paquetes RPM."
+    ],
+    "summary": "Administra paquetes y repositorios en openSUSE y SUSE Linux Enterprise.",
+    "explanation": "zypper es el gestor de paquetes de openSUSE y SUSE Linux Enterprise, construido sobre la biblioteca libzypp y el formato RPM. Con refresh actualiza la información de los repositorios, con install y remove agrega y quita paquetes, y con search busca. En Leap y en SUSE Linux Enterprise los arreglos se publican como parches que aplicás con zypper patch; en Tumbleweed, que es rolling release, se actualiza todo con zypper dup.",
+    "examples": [
+      {
+        "cmd": "sudo zypper refresh",
+        "desc": "Actualiza la información de todos los repositorios habilitados."
+      },
+      {
+        "cmd": "sudo zypper list-patches --category security",
+        "desc": "Lista solo los parches de seguridad que faltan aplicar."
+      },
+      {
+        "cmd": "sudo zypper patch --category security",
+        "desc": "Instala solo los parches de seguridad pendientes."
+      }
+    ],
+    "security": "No agregues un repositorio con --no-gpgcheck ni aceptes una clave nueva sin verificar su huella, porque la firma es lo que garantiza que el paquete viene de quien dice y que nadie lo modificó en el camino."
   }
 ]

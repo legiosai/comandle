@@ -135,7 +135,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
 
 /* ------------------------------------------------------------- man page */
 
-.man { grid-area: man; width: 100%; min-width: 0; max-width: 700px; justify-self: center; margin-top: 18px; }
+.man { width: 100%; min-width: 0; max-width: 700px; justify-self: center; margin-top: 18px; }
 .man-title { margin: 22px 0 6px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
 .man-title .id { font: 650 clamp(34px, 8vw, 46px)/1 var(--mono); letter-spacing: -.03em; color: var(--fg); }
 .man-title .tags { font: 450 12.5px/1 var(--mono); color: var(--comment-tx); }

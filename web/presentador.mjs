@@ -19,7 +19,9 @@ import {
 import { qrcode } from "./vendor/qrcode.mjs";
 
 const API = "https://vtsecurity.com.ar/api/comandle";
-const POLL_MS = 4000;
+// Every 15 s: the room screen is the main reader of the stats API, and each
+// poll is a function run on vtsecurity.com.ar (Vercel Hobby, 4 h of CPU a month).
+const POLL_MS = 15000;
 const TIMEOUT_MS = 8000;
 const SVG_NS = "http://www.w3.org/2000/svg";
 const QUIET = 4; // modules of white margin the QR standard asks for

@@ -160,6 +160,11 @@ func (r *Round) LetterState() map[rune]Mark {
 // list, not a hint: it does not narrow with the feedback from past guesses.
 func (r *Round) Words() []string { return r.book.Words(len([]rune(r.Answer.ID))) }
 
+// ShareURL closes the result a player pastes. The ref lets the web's visit
+// counter tell a visit from a result shared out of the terminal apart from a
+// typed address; the web game's own text says ref=compartido.
+const ShareURL = "comandle.valentorassa.com/?ref=compartido-cli"
+
 // Share is the spoiler-free result to paste on social media.
 func (r *Round) Share(day int, practice bool) string {
 	score := "X"
@@ -186,6 +191,6 @@ func (r *Round) Share(day int, practice bool) string {
 		}
 		sb.WriteString("\n")
 	}
-	sb.WriteString("comandle.valentorassa.com")
+	sb.WriteString(ShareURL)
 	return sb.String()
 }

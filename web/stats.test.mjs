@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { counts, playedStreak, referrerHost, refFrom, streakBucket } from "./stats.mjs";
+import { SHARE_URL } from "./logic.mjs";
 
 test("ref follows Pluma's rule", () => {
   assert.equal(refFrom(""), "directo");
@@ -12,6 +13,12 @@ test("ref follows Pluma's rule", () => {
   assert.equal(refFrom("?ref=-x"), "otro");
   assert.equal(refFrom(`?ref=${"a".repeat(49)}`), "otro");
   assert.equal(refFrom("?x=1&ref=discord"), "discord");
+});
+
+test("a shared result's link counts under its own ref, web and terminal apart", () => {
+  assert.equal(refFrom(new URL(`https://${SHARE_URL}`).search), "compartido");
+  // internal/game.ShareURL, what the terminal's text ends in
+  assert.equal(refFrom("?ref=compartido-cli"), "compartido-cli");
 });
 
 test("referrer is reduced to its host", () => {

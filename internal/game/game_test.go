@@ -138,6 +138,9 @@ func TestRound(t *testing.T) {
 	if strings.Contains(share, "chmod") {
 		t.Error("share text must not spoil the answer")
 	}
+	if !strings.HasSuffix(share, "\ncomandle.valentorassa.com/?ref=compartido-cli") {
+		t.Errorf("share text must end in the link with the terminal's ref:\n%s", share)
+	}
 }
 
 func TestWordsIgnoresFeedback(t *testing.T) {

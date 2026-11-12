@@ -95,7 +95,7 @@ export function letterState(guesses, answerId) {
 /**
  * Spoiler-free result to paste, same format as the terminal. `room` (web
  * only, modo clase) titles it with the room code instead of the day; without
- * it the text is exactly the terminal's.
+ * it the text is the terminal's except for the link's ref.
  */
 export function shareText(day, guesses, answerId, practice, room) {
   const won = guesses.at(-1) === answerId;
@@ -110,8 +110,13 @@ export function shareText(day, guesses, answerId, practice, room) {
       .map((m) => (m === CORRECT ? "🟩" : m === PRESENT ? "🟨" : "⬛"))
       .join(""),
   );
-  return [title, ...rows, "comandle.valentorassa.com"].join("\n");
+  return [title, ...rows, SHARE_URL].join("\n");
 }
+
+// The link at the end of a shared result. A visit that arrives through it counts
+// as ref=compartido instead of "directo"; the terminal's text says
+// ref=compartido-cli (ShareURL in internal/game).
+export const SHARE_URL = "comandle.valentorassa.com/?ref=compartido";
 
 /** Same bookkeeping as the terminal's stats.Record. */
 export function recordStats(stats, day, won, tries) {
